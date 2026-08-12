@@ -1,0 +1,77 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="_preview.css"></head>
+<body>
+<style>
+  .ftg {
+    background: var(--canvas-2); border: 1px solid var(--line-strong);
+    border-radius: 2px; padding: 0; flex-shrink: 0; width: 168px;
+    font-family: var(--font-mono); text-align: left;
+    display: flex; flex-direction: column;
+  }
+  .ftg.active { border-color: var(--vermillion); box-shadow: inset 0 -2px 0 var(--vermillion); }
+  .ftg .thumb { height: 60px; position: relative; overflow: hidden; background: linear-gradient(135deg, #2a221a 0%, #1a1714 60%, #0a0908 100%); border-bottom: 1px solid var(--line-strong); }
+  .ftg.active .thumb { border-bottom-color: var(--vermillion); }
+  .ftg .ord { position: absolute; top: 6px; left: 8px; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(251,247,235,0.7); }
+  .ftg .dur { position: absolute; bottom: 6px; right: 8px; font-size: 10px; color: rgba(251,247,235,0.7); font-variant-numeric: tabular-nums; }
+  .ftg .meta { padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; }
+  .ftg .name { font-size: 12px; color: var(--ink); }
+  .ftg .stats { font-size: 10px; color: var(--ink-3); display: flex; justify-content: space-between; }
+  .arr { align-self: center; color: var(--ink-4); font-family: var(--font-mono); font-size: 12px; }
+</style>
+<div class="card" style="padding: 18px 24px;">
+  <p class="eyebrow">Footages · 3 in cut · 00:40.1 &nbsp; <span style="color: var(--ink-4);">+ Add footage</span></p>
+  <div style="margin-top: 12px; display: flex; gap: 8px; align-items: stretch; flex-wrap: wrap;">
+
+    <div class="ftg active">
+      <div class="thumb">
+        <span class="ord">01</span>
+        <span class="dur">04:23</span>
+        <svg viewBox="0 0 168 60" style="position: absolute; inset: 0; width: 100%; height: 100%;" preserveAspectRatio="xMidYMid slice">
+          <ellipse cx="58" cy="28" rx="18" ry="22" fill="#2a221a" />
+          <path d="M 30 60 Q 30 44 58 44 Q 86 44 86 60 Z" fill="#1c1612" />
+        </svg>
+      </div>
+      <div class="meta">
+        <span class="name">Interview, daylight</span>
+        <span class="stats"><span>6/8 kept</span><span style="font-variant-numeric: tabular-nums;">00:20.0</span></span>
+      </div>
+    </div>
+
+    <span class="arr">→</span>
+
+    <div class="ftg">
+      <div class="thumb">
+        <span class="ord">02</span>
+        <span class="dur">02:11</span>
+        <svg viewBox="0 0 168 60" style="position: absolute; inset: 0; width: 100%; height: 100%;" preserveAspectRatio="xMidYMid slice">
+          <rect x="0" y="36" width="168" height="24" fill="#1c1612" />
+          <line x1="20" y1="40" x2="148" y2="40" stroke="#3a2e22" stroke-width="1" />
+          <line x1="20" y1="48" x2="148" y2="48" stroke="#3a2e22" stroke-width="1" />
+        </svg>
+      </div>
+      <div class="meta">
+        <span class="name">B-roll, type cases</span>
+        <span class="stats"><span>2/2 kept</span><span style="font-variant-numeric: tabular-nums;">00:07.4</span></span>
+      </div>
+    </div>
+
+    <span class="arr">→</span>
+
+    <div class="ftg">
+      <div class="thumb">
+        <span class="ord">03</span>
+        <span class="dur">04:23</span>
+        <svg viewBox="0 0 168 60" style="position: absolute; inset: 0; width: 100%; height: 100%;" preserveAspectRatio="xMidYMid slice">
+          <ellipse cx="58" cy="28" rx="18" ry="22" fill="#2a221a" />
+          <path d="M 30 60 Q 30 44 58 44 Q 86 44 86 60 Z" fill="#1c1612" />
+        </svg>
+      </div>
+      <div class="meta">
+        <span class="name">Interview, return</span>
+        <span class="stats"><span>3/3 kept</span><span style="font-variant-numeric: tabular-nums;">00:12.7</span></span>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body></html>

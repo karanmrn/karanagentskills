@@ -1,0 +1,4 @@
+interface:
+  display_name: "ClickClack"
+  short_description: "Deploy and operate ClickClack chat"
+  default_prompt: "Use $clickclack to deploy ClickClack, verify clickclack.chat/app/docs, or explain the Hetzner production setup."

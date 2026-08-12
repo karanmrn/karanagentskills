@@ -1,0 +1,2 @@
+# ts/
+destructured fn:plainFn,makeThing cl:PlainClass ty:PlainType c:plainConst,listThings,getThing,firstThing,secondThing re:./reexported.js

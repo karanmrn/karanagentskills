@@ -1,0 +1,4 @@
+interface:
+  display_name: "Twilio SMS"
+  short_description: "Manage Twilio phone numbers and SMS"
+  default_prompt: "Use $twilio-sms to buy or list Twilio numbers, keep/label them, send texts, and check inbound or outbound SMS without leaking credentials."

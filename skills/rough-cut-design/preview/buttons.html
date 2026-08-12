@@ -1,0 +1,43 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="_preview.css"></head>
+<body>
+<style>
+  .btn {
+    font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+    letter-spacing: -0.005em; line-height: 1;
+    padding: 9px 14px; border-radius: 2px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: background var(--dur-1) var(--ease), color var(--dur-1) var(--ease), border-color var(--dur-1) var(--ease);
+  }
+  .btn-primary  { background: var(--ink); color: var(--ink-on-dark); border: 1px solid var(--ink); }
+  .btn-default  { background: var(--canvas-2); color: var(--ink); border: 1px solid var(--line-strong); }
+  .btn-quiet    { background: transparent; color: var(--ink); border: 1px solid transparent; }
+  .btn-quiet:hover { background: var(--canvas-hover); }
+  .btn-keep     { background: var(--vermillion); color: #FBF7EB; border: 1px solid var(--vermillion); }
+  .btn-skip     { background: transparent; color: var(--ink); border: 1px solid var(--line-strong); }
+  .btn-danger   { background: transparent; color: var(--danger); border: 1px solid #E8B8AE; }
+  .btn-agent    { background: var(--ultramarine); color: var(--ink-on-dark); border: 1px solid var(--ultramarine); }
+  .btn-disabled { background: var(--canvas-hover); color: var(--ink-4); border: 1px solid var(--line); cursor: not-allowed; }
+  .arrow { font-family: var(--font-mono); font-size: 14px; line-height: 1; }
+</style>
+<div class="card" style="padding: 22px 24px;">
+  <p class="eyebrow">Buttons</p>
+  <div style="margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+    <button class="btn btn-primary">Open editor</button>
+    <button class="btn btn-default">End session</button>
+    <button class="btn btn-quiet">Cancel</button>
+    <button class="btn btn-agent">Send</button>
+    <button class="btn btn-keep">Keep</button>
+    <button class="btn btn-skip">Skip</button>
+    <button class="btn btn-danger">Delete passage</button>
+    <button class="btn btn-disabled">Add footage</button>
+  </div>
+  <div style="margin-top: 18px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+    <button class="btn btn-primary" style="padding: 11px 18px; font-size: 14px;">Open editor <span class="arrow">→</span></button>
+    <button class="btn btn-default" style="padding: 7px 10px; font-size: 12px;">Trim</button>
+    <button class="btn btn-default" style="padding: 7px 10px; font-size: 12px;">Split</button>
+    <button class="btn btn-default" style="padding: 7px 10px; font-size: 12px;">Reorder</button>
+    <button class="btn btn-default" style="padding: 5px 8px; font-size: 11px;">⌘K</button>
+  </div>
+</div>
+</body></html>

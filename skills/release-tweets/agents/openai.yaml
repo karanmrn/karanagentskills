@@ -1,0 +1,4 @@
+interface:
+  display_name: "Release Tweets"
+  short_description: "Draft concise X release announcements from real release evidence"
+  default_prompt: "Use $release-tweets to draft a concise X release announcement from the changelog, release notes, and shipped artifact state."

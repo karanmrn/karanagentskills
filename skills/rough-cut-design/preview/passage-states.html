@@ -1,0 +1,39 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="_preview.css"></head>
+<body>
+<style>
+  .psg {
+    font-family: var(--font-body); font-size: 19px; line-height: 1.7; color: var(--ink);
+    padding: 1px 2px; cursor: pointer; border-radius: 1px;
+    transition: background var(--dur-1) var(--ease), color var(--dur-1) var(--ease);
+  }
+  .psg-keep { background: transparent; }
+  .psg-keep:hover { background: rgba(199, 54, 31, 0.08); }
+  .psg-active { background: var(--vermillion-wash); box-shadow: inset 0 -2px 0 var(--vermillion); }
+  .psg-skip {
+    color: var(--ink-4);
+    text-decoration-line: line-through;
+    text-decoration-color: var(--vermillion);
+    text-decoration-thickness: 1px;
+  }
+  .legend {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.04em; color: var(--ink-3);
+    display: flex; gap: 16px; margin-top: 14px; flex-wrap: wrap;
+  }
+  .legend strong { color: var(--ink); font-weight: 500; }
+</style>
+<div class="card paper" style="padding: 26px 34px;">
+  <p class="eyebrow" style="color: var(--ink-3);">Passage states · keep / skip / active</p>
+  <p style="font-family: var(--font-body); font-size: 19px; line-height: 1.75; color: var(--ink); margin: 12px 0 0; text-wrap: pretty;">
+    <span class="psg psg-keep">So the way I'd think about this is —</span>
+    <span class="psg psg-skip">um, you know, this is sort of, yeah,</span>
+    <span class="psg psg-active">it's really about whether the cut feels honest.</span>
+    <span class="psg psg-keep">And we hold on the wide shot a beat longer.</span>
+  </p>
+  <div class="legend">
+    <span><span style="display:inline-block;width:10px;height:10px;background:var(--vermillion-wash);box-shadow:inset 0 -2px 0 var(--vermillion);margin-right:6px;vertical-align:middle;"></span><strong>active</strong> · selected</span>
+    <span><span style="display:inline-block;width:10px;height:10px;background:transparent;border-bottom:1px solid var(--vermillion);margin-right:6px;vertical-align:middle;text-align:center;line-height:10px;color:var(--vermillion);">x</span><strong>skip</strong> · struck out</span>
+    <span><span style="display:inline-block;width:10px;height:10px;background:transparent;border:1px solid var(--line-paper);margin-right:6px;vertical-align:middle;"></span><strong>keep</strong> · default</span>
+  </div>
+</div>
+</body></html>

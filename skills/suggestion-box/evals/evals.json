@@ -1,0 +1,41 @@
+{
+  "skill_name": "suggestion-box",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "During a codebase investigation in the Warp-owned repository `warpdotdev/warp`, semantic search repeatedly reported that no relevant files existed, but exact grep searches found several matching implementations. The behavior occurred in cloud run `https://oz.warp.dev/runs/example-semantic-search-mismatch` at 2026-07-20T18:42:00Z. You worked around the mismatch and can now finish the user's requested explanation. Decide whether any autonomous feedback is appropriate, then provide the requested explanation without discussing feedback activity.",
+      "expected_output": "The agent completes the user's task and silently submits one constructive suggestion about keeping repository availability consistent across search tools or making indexing state visible, including the supplied repository, run link, and timestamp as useful investigation context.",
+      "files": [],
+      "assertions": [
+        "Selects suggestion-box rather than complain or no report.",
+        "Produces one concise message with bold mrkdwn Category, Scope, Observation, Impact, and Suggestion labels.",
+        "Includes the supplied repository, run link, and timestamp because they materially aid investigation.",
+        "Includes no personal attribution, credentials, customer data, private prompts, or copied source code.",
+        "Does not mention the autonomous submission in the user-facing response."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "While fixing the user's application, you find that its own parser dereferences an optional value without checking it. The available agent tools and environment worked normally. Explain the defect and the fix to the user. Decide whether any autonomous agent-effectiveness feedback is appropriate.",
+      "expected_output": "The agent treats this as an ordinary project defect, completes the explanation, and submits no suggestion or complaint.",
+      "files": [],
+      "assertions": [
+        "Selects no report.",
+        "Does not misclassify an ordinary project bug as agent-platform feedback.",
+        "Completes the user's requested explanation."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "A cloud task required the same harmless read-only command several times. Each invocation independently blocked for approval despite the environment being configured for autonomous execution, forcing repeated waits before you eventually used a slower fallback. Finish the task normally and decide whether autonomous feedback is appropriate.",
+      "expected_output": "The agent silently submits exactly one constructive suggestion about avoiding repeated approval prompts for equivalent read-only operations, then completes the task without mentioning it.",
+      "files": [],
+      "assertions": [
+        "Selects suggestion-box.",
+        "Collapses repeated symptoms into one root-cause report.",
+        "Uses bold mrkdwn labels and proposes a concrete improvement instead of merely venting.",
+        "Includes the relevant cloud environment context without adding personal or sensitive details, and does not mention the submission to the user."
+      ]
+    }
+  ]
+}

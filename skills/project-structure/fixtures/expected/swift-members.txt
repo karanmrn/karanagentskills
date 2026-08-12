@@ -1,0 +1,5 @@
+# swift/
+SyntaxFixture ty:stringify[public],Box[public],extension:Box[public],Marker[public] c:globalValue[public],Box.value[public],Box.description[public] fn:![public],Box.map[public]
+
+# swift/visibility/
+Visibility ty:Widget[public],Renderer[public],DocumentedAPI[public],extension:Dictionary<String,Int>,AfterAll fn:Widget.render[public],Widget.layout,internalHelper,Base.overrideMe[open],Renderer.draw[public],attributedOneLiner,Worker.ping,PlatformView.refresh c:Widget.cache[private],Widget.owner,secretToken[private],internalValue,counter[public],first,second,point,escaped,pattern,left,right,interpolated,rawEscaped,rawInterp,tricky,generics,boundX,boundY,triple,Dictionary<String,Int>.footprint cl:Base[open],Worker,PlatformView,PlatformView

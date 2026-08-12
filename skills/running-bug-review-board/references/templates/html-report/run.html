@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#FAFAF7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#131311" media="(prefers-color-scheme: dark)">
+  <title>{{RUN_TITLE}} — {{REPORT_TITLE}}</title>
+  <link rel="stylesheet" href="../assets.css">
+  <!-- skill:running-bug-review-board v0.3 -->
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="masthead-inner">
+      <h1 class="masthead-title"><a href="../index.html">{{REPORT_TITLE}}</a></h1>
+      <p class="masthead-meta"><a href="../index.html">← dashboard</a></p>
+    </div>
+  </header>
+
+  <main>
+    <section class="read">
+
+      <article class="verdict">
+        <p class="eyebrow">{{RUN_KIND_LABEL}} · Phase {{PHASE}} · <time datetime="{{RUN_ISO}}">{{RUN_DATE}}</time></p>
+        <h2 class="verdict-word {{VERDICT_CLASS}}">{{VERDICT_WORD}}</h2>
+        <p class="verdict-line">{{RUN_HEADLINE}}</p>
+        <a class="verdict-action" href="../../runs/{{RUN_MD_FILENAME}}">Read the markdown</a>
+      </article>
+
+      <!-- Counts as a quiet sentence rather than four boxes. -->
+      <p class="article-deck" style="margin-bottom: var(--s-6);">
+        {{SCENARIOS_TOTAL}} scenarios run.
+        <strong>{{PASSED}}</strong> passed,
+        <strong>{{FAILED}}</strong> failed,
+        <strong>{{BLOCKED}}</strong> blocked.
+      </p>
+
+      {{#HANDOFF_PROMPT}}
+      <section class="article-section">
+        <h2 class="section-title is-quiet">Handoff prompt</h2>
+        <p>If the verdict is <strong>NO</strong>, paste this into a fresh agent:</p>
+        <pre><code>{{HANDOFF_PROMPT}}</code></pre>
+      </section>
+      {{/HANDOFF_PROMPT}}
+
+      <h3 class="section-title is-quiet">Results</h3>
+      <table class="article-triage">
+        <thead>
+          <tr><th>Test ID</th><th>Result</th><th>Gate</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          {{RESULT_ROWS}}
+        </tbody>
+      </table>
+
+      {{#BUGS_FILED}}
+      <h3 class="section-title is-quiet">Bugs filed this run</h3>
+      <ol class="bug-list">
+        {{BUGS_FILED_ITEMS}}
+      </ol>
+      {{/BUGS_FILED}}
+
+      {{#TRACKER_SYNC}}
+      <h3 class="section-title is-quiet">Tracker sync</h3>
+      <table class="article-triage">
+        <thead>
+          <tr><th>Tracker</th><th>Pushed</th><th>Updated</th><th>Pulled</th><th>Diverged</th></tr>
+        </thead>
+        <tbody>
+          {{TRACKER_SYNC_ROWS}}
+        </tbody>
+      </table>
+      {{/TRACKER_SYNC}}
+
+      {{#REGRESSION_MATRIX}}
+      <h3 class="section-title is-quiet">Regression matrix</h3>
+      <table class="article-triage">
+        <thead>
+          <tr><th>Row</th><th>Result</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          {{REGRESSION_ROWS}}
+        </tbody>
+      </table>
+      {{/REGRESSION_MATRIX}}
+
+      {{#PROCESS_NOTES}}
+      <section class="article-section">
+        <h2 class="section-title is-quiet">Process notes</h2>
+        {{PROCESS_NOTES_HTML}}
+      </section>
+      {{/PROCESS_NOTES}}
+
+      {{#RECOMMENDED_NEXT}}
+      <section class="article-section">
+        <h2 class="section-title is-quiet">Recommended next steps</h2>
+        {{RECOMMENDED_NEXT_HTML}}
+      </section>
+      {{/RECOMMENDED_NEXT}}
+
+    </section>
+  </main>
+
+  <footer class="colophon">
+    <p>
+      Markdown source:
+      <a href="../../runs/{{RUN_MD_FILENAME}}"><code>{{RUN_MD_FILENAME}}</code></a>.
+      Generated
+      <time datetime="{{GENERATED_ISO}}">{{GENERATED_HUMAN}}</time>
+      by the <code>running-bug-review-board</code> skill v0.3.
+    </p>
+  </footer>
+</body>
+</html>

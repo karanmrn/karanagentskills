@@ -1,0 +1,4 @@
+interface:
+  display_name: "OpenClaw Relay"
+  short_description: "Local or SSH relay into OpenClaw sessions"
+  default_prompt: "Use $openclaw-relay to ask, publish, or force-send through local or remote OpenClaw sessions."

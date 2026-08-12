@@ -1,0 +1,156 @@
+# Omnigent server + Postgres (external-runner mode).
+#
+# Quickstart (single-user dev):
+#
+#   cd deploy/docker
+#   cp .env.example .env       # edit POSTGRES_PASSWORD at minimum
+#   docker compose up -d
+#   open http://localhost:8000  # web UI; start a local runner per the prompt
+#
+# Auth modes (OMNIGENT_AUTH_PROVIDER):
+#   - accounts (DEFAULT) — built-in accounts, no IdP needed. No
+#     credentials are auto-generated; first boot prints a "No admin
+#     yet" line and you create the first admin (username + password)
+#     via the web Create-admin form, or pre-seed it with
+#     OMNIGENT_ACCOUNTS_INIT_ADMIN_PASSWORD. Set
+#     OMNIGENT_ACCOUNTS_BASE_URL for any deploy reachable behind
+#     a public domain (defaults to http://<HOST>:<PORT> otherwise).
+#   - oidc — bring your own IdP. Set OMNIGENT_OIDC_* vars — see
+#     .env.example for full walkthroughs.
+#   - header — for deploys behind a proxy that injects
+#     X-Forwarded-Email (Databricks Apps, oauth2-proxy, etc).
+
+name: omnigent
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-omnigent}
+      POSTGRES_USER: ${POSTGRES_USER:-omnigent}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-omnigent} -d ${POSTGRES_DB:-omnigent}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  omnigent:
+    # Pre-built image published to GHCR on every main-branch merge.
+    # `docker compose pull` fetches the latest; pin OMNIGENT_IMAGE_TAG
+    # to a sha-<short> or vX.Y.Z tag for reproducible deploys.
+    image: ${OMNIGENT_IMAGE:-ghcr.io/omnigent-ai/omnigent-server}:${OMNIGENT_IMAGE_TAG:-latest}
+    # Local-build fallback for forks / offline / dev iterations. Used
+    # only when the image isn't already pulled AND you run
+    # `docker compose up --build` explicitly. The published image in
+    # CI is built from this same Dockerfile.
+    build:
+      # Repo root, reached from deploy/docker/ → ../..
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile
+      args:
+        PYPI_INDEX_URL: ${PYPI_INDEX_URL:-https://pypi.org/simple}
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-omnigent}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-omnigent}
+      ARTIFACT_DIR: /data/artifacts
+      HOST: 0.0.0.0
+      PORT: "8000"
+      # Anchor the server's data dir on the persistent volume so
+      # file-backed operator config survives container restarts:
+      # the admin roster (/data/admins) and allowed-domains file
+      # (/data/allowed_domains), plus artifacts mounted elsewhere
+      # in the same volume. Account rows and password hashes live in
+      # PostgreSQL (the postgres-data volume), not here. The server
+      # resolves its data dir from this path's parent (/data);
+      # empty/unset would fall back to /root/.omnigent/ inside the
+      # ephemeral container.
+      OMNIGENT_ADMIN_CREDENTIALS_PATH: /data/admin-credentials
+
+      # ── Auth ─────────────────────────────────────────
+      # OMNIGENT_AUTH_ENABLED is the single auth switch. "1" (the
+      # default here) turns on multi-user auth; with the OMNIGENT_OIDC_*
+      # vars below UNSET it selects the built-in accounts flow (username +
+      # password + first-user-is-admin bootstrap), and with them SET it
+      # selects the native OIDC login flow instead. Set it to "0" to opt
+      # out entirely and run single-user local mode, which treats every
+      # request as the single "local" user with no login — handy for local
+      # dev (many web clients + servers on one machine), NEVER for shared
+      # deploys: everyone who can reach the port is the same user.
+      OMNIGENT_AUTH_ENABLED: "${OMNIGENT_AUTH_ENABLED:-1}"
+      # Escape hatch: pin the identity source explicitly. Overrides the
+      # AUTH_ENABLED-based resolution above. Leave unset unless you need
+      # to force a specific mode:
+      #   "accounts" — built-in username + password bootstrap
+      #   "oidc"     — native login flow, OIDC cookie auth
+      #   "header"   — read X-Forwarded-Email from a trusted proxy;
+      #                requests missing the header are rejected (401)
+      OMNIGENT_AUTH_PROVIDER: "${OMNIGENT_AUTH_PROVIDER:-}"
+
+      # OIDC config — consumed when OIDC mode is active (AUTH_ENABLED=1
+      # with OMNIGENT_OIDC_ISSUER set, or AUTH_PROVIDER=oidc). Required
+      # in that mode; the server fails loud at startup if any are
+      # missing. See .env.example for descriptions + provider examples.
+      OMNIGENT_OIDC_ISSUER: "${OMNIGENT_OIDC_ISSUER:-}"
+      OMNIGENT_OIDC_CLIENT_ID: "${OMNIGENT_OIDC_CLIENT_ID:-}"
+      OMNIGENT_OIDC_CLIENT_SECRET: "${OMNIGENT_OIDC_CLIENT_SECRET:-}"
+      OMNIGENT_OIDC_COOKIE_SECRET: "${OMNIGENT_OIDC_COOKIE_SECRET:-}"
+      OMNIGENT_OIDC_SCOPES: "${OMNIGENT_OIDC_SCOPES:-}"
+      OMNIGENT_OIDC_SESSION_TTL_HOURS: "${OMNIGENT_OIDC_SESSION_TTL_HOURS:-8}"
+      OMNIGENT_OIDC_ALLOWED_DOMAINS: "${OMNIGENT_OIDC_ALLOWED_DOMAINS:-}"
+      OMNIGENT_OIDC_LOGOUT_REDIRECT_URI: "${OMNIGENT_OIDC_LOGOUT_REDIRECT_URI:-}"
+      # Skip the email_verified id_token check — for IdPs (e.g. Okta
+      # without API Access Management) that omit the claim for
+      # directory-provisioned users. Off unless set; see .env.example.
+      OMNIGENT_OIDC_SKIP_EMAIL_VERIFICATION: "${OMNIGENT_OIDC_SKIP_EMAIL_VERIFICATION:-}"
+      # Read the email identity from a different id_token claim — for
+      # IdPs (e.g. Microsoft Entra ID) that issue preferred_username
+      # instead of email. Empty means the default (email); see .env.example.
+      OMNIGENT_OIDC_EMAIL_CLAIM: "${OMNIGENT_OIDC_EMAIL_CLAIM:-}"
+      # Opt-in OIDC invites (admin pre-authorizes one off-domain email).
+      # Off unless set. The admin list (/data/admins) and the optional
+      # allowed-domains file (/data/allowed_domains) need no env var —
+      # they default to the data dir set by OMNIGENT_ADMIN_CREDENTIALS_PATH.
+      OMNIGENT_OIDC_ALLOW_INVITES: "${OMNIGENT_OIDC_ALLOW_INVITES:-}"
+      # Public domain — the single source for the OIDC redirect URI: the
+      # server derives it as https://<domain>/auth/callback (set the
+      # matching callback in your IdP app). Also consumed by the Caddy
+      # HTTPS overlay. There is intentionally NO OMNIGENT_OIDC_REDIRECT_URI
+      # passthrough here — one knob, no http/https mismatch. (A raw-IP /
+      # no-domain deploy that needs an explicit redirect must add an
+      # `OMNIGENT_OIDC_REDIRECT_URI: "${OMNIGENT_OIDC_REDIRECT_URI:-}"`
+      # line back to this block — the domain stack is the supported path.)
+      OMNIGENT_DOMAIN: "${OMNIGENT_DOMAIN:-}"
+
+      # Accounts config — consumed in accounts mode (AUTH_ENABLED=1 with
+      # no OIDC issuer, the default here; or AUTH_PROVIDER=accounts).
+      # COOKIE_SECRET is minted by `./bootstrap.sh` on first
+      # run if you don't pass one. BASE_URL defaults to
+      # http://<HOST>:<PORT> from the request — set it explicitly for
+      # any deploy reachable through a public domain. See .env.example.
+      OMNIGENT_ACCOUNTS_COOKIE_SECRET: "${OMNIGENT_ACCOUNTS_COOKIE_SECRET:-}"
+      OMNIGENT_ACCOUNTS_BASE_URL: "${OMNIGENT_ACCOUNTS_BASE_URL:-}"
+      OMNIGENT_ACCOUNTS_INIT_ADMIN_PASSWORD: "${OMNIGENT_ACCOUNTS_INIT_ADMIN_PASSWORD:-}"
+      OMNIGENT_ACCOUNTS_SESSION_TTL_HOURS: "${OMNIGENT_ACCOUNTS_SESSION_TTL_HOURS:-8}"
+      OMNIGENT_ACCOUNTS_INVITE_TTL_HOURS: "${OMNIGENT_ACCOUNTS_INVITE_TTL_HOURS:-72}"
+      OMNIGENT_ACCOUNTS_MAGIC_TTL_MINUTES: "${OMNIGENT_ACCOUNTS_MAGIC_TTL_MINUTES:-10}"
+      # Browser auto-open is a no-op inside the container (no
+      # display); the value also gates whether the stderr "open
+      # this URL" announcement fires. Off for Docker by default
+      # so the operator's logs aren't cluttered with a URL they
+      # can't click.
+      OMNIGENT_ACCOUNTS_AUTO_OPEN: "${OMNIGENT_ACCOUNTS_AUTO_OPEN:-0}"
+    volumes:
+      - artifact-data:/data
+    ports:
+      - "${OMNIGENT_PORT:-8000}:8000"
+
+volumes:
+  postgres-data:
+  artifact-data:

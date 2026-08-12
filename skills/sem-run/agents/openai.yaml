@@ -1,0 +1,4 @@
+interface:
+  display_name: "Sem Run"
+  short_description: "Run semantic programs in isolated steps"
+  default_prompt: "Use $sem-run to compile and execute this as an artifact-producing semantic program."

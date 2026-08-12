@@ -1,0 +1,41 @@
+{
+  "name": "no-ai-slop",
+  "version": "1.0.4",
+  "description": "Remove 20+ patterns of AI slop from any piece of writing without flattening your personal voice.",
+  "author": {
+    "name": "Peter Yang",
+    "url": "https://creatoreconomy.so"
+  },
+  "homepage": "https://creatoreconomy.so/p/use-my-no-ai-slop-skill-to-remove-20-ai-slop-patterns",
+  "repository": "https://github.com/petergyang/no-ai-slop",
+  "license": "MIT",
+  "keywords": [
+    "writing",
+    "editing",
+    "voice",
+    "AI slop"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "No AI Slop",
+    "shortDescription": "Cut AI slop. Keep your voice.",
+    "longDescription": "This plugin removes 20+ patterns of AI slop from any piece of writing without flattening your personal voice. It can also detect slop without guessing whether AI wrote the text.\n\nMore than 2,700 people have starred it on [GitHub](https://github.com/petergyang/no-ai-slop). The [launch post on X](https://x.com/petergyang/status/2079943830024188105) reached 611K impressions, 10K+ saves, and 13K+ link clicks.",
+    "developerName": "Peter Yang",
+    "category": "Productivity",
+    "capabilities": [
+      "Edit",
+      "Detect",
+      "Preserve voice"
+    ],
+    "websiteURL": "https://creatoreconomy.so/p/use-my-no-ai-slop-skill-to-remove-20-ai-slop-patterns",
+    "privacyPolicyURL": "https://github.com/petergyang/no-ai-slop/blob/main/PRIVACY.md",
+    "termsOfServiceURL": "https://github.com/petergyang/no-ai-slop/blob/main/TERMS.md",
+    "defaultPrompt": [
+      "edit (your writing)",
+      "Is this slop? (a writing excerpt)"
+    ],
+    "brandColor": "#D30800",
+    "composerIcon": "./assets/no-ai-slop.png",
+    "logo": "./assets/no-ai-slop.png"
+  }
+}

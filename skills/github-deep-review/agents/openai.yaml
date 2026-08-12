@@ -1,0 +1,4 @@
+interface:
+  display_name: "GitHub Deep Review"
+  short_description: "Review GitHub issues and PRs with proof"
+  default_prompt: "Use $github-deep-review to inspect this GitHub issue or PR, read the relevant code paths, identify the root cause, judge the best fix, and call out useful refactors."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "VM Lab"
+  short_description: "Verify macOS GUI automation in VM labs"
+  default_prompt: "Use $vm-lab to run GUI automation under real TCC permissions, verify it with independent host screenshots, and report only actionable results."

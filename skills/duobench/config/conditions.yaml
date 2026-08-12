@@ -1,0 +1,12 @@
+# Optional named planner×implementer presets. `planner` and `implementer` are keys into
+# models.yaml. For the common full cross-product benchmark, prefer the CLI matrix:
+#   (the duobench skill expands a model matrix directly)
+# `id` is used for output filenames/charts when selecting these presets.
+conditions:
+  - { id: kimi-solo,   planner: kimi-k2.6,       implementer: kimi-k2.6 }
+  - { id: gpt-solo,    planner: gpt-5.5,         implementer: gpt-5.5 }
+  - { id: opus-solo,   planner: claude-opus-4.8, implementer: claude-opus-4.8 }
+  - { id: kimi-x-gpt,  planner: kimi-k2.6,       implementer: gpt-5.5 }
+  - { id: gpt-x-kimi,  planner: gpt-5.5,         implementer: kimi-k2.6 }
+  - { id: kimi-x-opus, planner: kimi-k2.6,       implementer: claude-opus-4.8 }
+  - { id: opus-x-kimi, planner: claude-opus-4.8, implementer: kimi-k2.6 }

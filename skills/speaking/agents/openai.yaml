@@ -1,0 +1,4 @@
+interface:
+  display_name: "Speaking"
+  short_description: "Evaluate and sync speaking opportunities"
+  default_prompt: "Use $speaking to evaluate this speaking invite, verify it against Gmail/calendar, and update the conferences tracker if needed."

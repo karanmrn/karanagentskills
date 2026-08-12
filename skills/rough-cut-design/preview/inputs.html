@@ -1,0 +1,38 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="_preview.css"></head>
+<body>
+<style>
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); }
+  .input {
+    font-family: var(--font-mono); font-size: 14px; color: var(--ink);
+    background: var(--canvas-2); border: 1px solid var(--line-strong);
+    border-radius: 2px; padding: 9px 11px; outline: none;
+    transition: border-color var(--dur-1) var(--ease);
+  }
+  .input:focus { border-color: var(--ink); }
+  .textarea {
+    font-family: var(--font-body); font-size: 15px; line-height: 1.55; color: var(--ink);
+    background: var(--canvas-2); border: 1px solid var(--line-strong);
+    border-radius: 2px; padding: 11px 13px; outline: none; resize: vertical;
+    min-height: 56px;
+  }
+</style>
+<div class="card" style="padding: 22px 24px;">
+  <p class="eyebrow">Inputs</p>
+  <div style="margin-top: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+    <div class="field">
+      <label>Project title</label>
+      <input class="input" value="20260515-153012-footage" />
+    </div>
+    <div class="field">
+      <label>Range (s)</label>
+      <input class="input" value="00:12.40 → 00:18.92" />
+    </div>
+    <div class="field" style="grid-column: span 2;">
+      <label>Note to agent</label>
+      <textarea class="textarea">Tighten the intro. Strike anything before the first "so".</textarea>
+    </div>
+  </div>
+</div>
+</body></html>

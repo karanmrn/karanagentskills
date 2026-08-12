@@ -1,0 +1,114 @@
+{
+  "$comment": "Example docs/qa/qa-config.json. The scaffolder writes a minimal stub (issueTracker.type=none). The discovery ceremony in references/issue-trackers.md rewrites this file once the user confirms which tracker to use. Unknown fields are ignored — this schema is forward-compatible.",
+
+  "version": 1,
+  "discoveredAt": "2026-05-27T18:23:00Z",
+  "confirmedBy": "user",
+
+  "issueTracker": {
+    "$comment": "type=linear|github|jira|notion|none. Discovery ceremony fills this; never inferred silently.",
+    "type": "linear",
+
+    "$comment_syncOnFile": "When true, auto pass syncs every newly-filed bug immediately. When false (default), sync happens at BRB time after a human has triaged.",
+    "syncOnFile": false,
+
+    "$comment_pull": "Bi-directional sync — tracker → markdown. See references/issue-trackers.md.",
+    "pull": {
+      "onBRBStart": true,
+      "onReTest": true,
+      "window": "since-last-sync",
+      "$comment_createLocalForUntracked": "ask|ignore|create — what to do when a tracker bug has no local markdown counterpart. Default ask.",
+      "createLocalForUntracked": "ask"
+    },
+
+    "linear": {
+      "teamId": "ABC-12345",
+      "labelMap": {
+        "P0": "urgent",
+        "P1": "high",
+        "P2": "low"
+      },
+      "extraLabels": ["qa", "brb"],
+      "mcpServer": "linear"
+    },
+
+    "$comment_github": "Active only if type=github. Both blocks can co-exist in a mixed-tracker config.",
+    "github": {
+      "repo": "owner/name",
+      "labelPrefix": "",
+      "labelMap": {
+        "P0": "P0",
+        "P1": "P1",
+        "P2": "P2"
+      },
+      "extraLabels": ["qa", "brb"]
+    },
+
+    "jira": {
+      "baseUrl": "https://acme.atlassian.net",
+      "projectKey": "QA",
+      "labelMap": {
+        "P0": "Highest",
+        "P1": "High",
+        "P2": "Low"
+      }
+    },
+
+    "notion": {
+      "databaseId": "abcd1234567890efghijklmnop",
+      "mcpServer": "notion"
+    }
+  },
+
+  "$comment_triage": "Pattern-based suggestions inside the BRB. See references/triage-heuristics.md.",
+  "triage": {
+    "runHeuristicsOnBRBStart": true,
+    "runHeuristicsOnFile": false,
+    "enabledHeuristics": [
+      "same-suspect-file",
+      "steps-prefix-overlap",
+      "same-persona-surface-outcome",
+      "same-console-error",
+      "same-test-id",
+      "phase-cascade",
+      "cosmetic-cluster",
+      "regression-marker",
+      "same-owner"
+    ]
+  },
+
+  "$comment_report": "HTML report config. See references/html-report-style-guide.md.",
+  "report": {
+    "outputDir": "docs/qa/report",
+    "title": "QA Report"
+  },
+
+  "$comment_platforms": "What the repo under QA actually is. Web app -> see references/browser-playbook.md. iOS / iPadOS app -> see references/ios-simulator-playbook.md. Set ios.enabled=true ONLY when the repo IS an iOS app project (presence of *.xcodeproj, Package.swift with .iOS, Podfile with platform :ios, ios/ directory, etc.). The iOS path is for native iOS app QA, NOT for testing a web app on Mobile Safari.",
+  "platforms": {
+    "web": {
+      "$comment": "Web app QA. See references/browser-playbook.md. The skill tests all three device modes; discovery records the primary here so it is not re-decided each pass.",
+      "enabled": true,
+      "$comment_deviceModes": "Modes to test, in order. Reference sizes; adjust WIDTHxHEIGHT to the app own breakpoints.",
+      "deviceModes": {
+        "mobile": "375x812",
+        "tablet": "768x1024",
+        "desktop": "1280x800"
+      },
+      "$comment_primary": "mobile|tablet|desktop - the spec primary target, weighted most heavily.",
+      "primary": "mobile",
+      "$comment_primarySource": "spec|user|inferred|default - how primary was decided, so a later pass knows whether to revisit it.",
+      "primarySource": "spec"
+    },
+    "ios": {
+      "enabled": false,
+      "$comment_devices": "Simulator names from `xcrun simctl list devices`. The test plan derives device coverage from here.",
+      "devices": ["iPhone 17 Pro", "iPad Pro 13-inch"],
+      "$comment_preferred": "Companion skill / CLI the agent reaches for first. AXe|baguette|XcodeBuildMCP|ios-build-verify|ios-simulator-skill|idb|serve-sim|swiftui-autotest|xcode-build.",
+      "preferred": "AXe",
+      "$comment_scheme": "Xcode scheme for build + test. Optional; companions can auto-detect.",
+      "scheme": "MyApp",
+      "$comment_minOSVersion": "Minimum supported iOS version per Info.plist.",
+      "minOSVersion": "17.0"
+    }
+  }
+}

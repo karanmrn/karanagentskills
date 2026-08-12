@@ -1,0 +1,104 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  validate:
+    name: Validate skill and safety
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Validate skill structure
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def parse_simple_yaml(text):
+              data = {}
+              stack = [(-1, data)]
+              for raw in text.splitlines():
+                  if not raw.strip() or raw.lstrip().startswith("#"):
+                      continue
+                  indent = len(raw) - len(raw.lstrip(" "))
+                  key, _, value = raw.strip().partition(":")
+                  while stack and indent <= stack[-1][0]:
+                      stack.pop()
+                  parent = stack[-1][1]
+                  value = value.strip()
+                  if not value:
+                      child = {}
+                      parent[key] = child
+                      stack.append((indent, child))
+                  else:
+                      parent[key] = value.strip('"')
+              return data
+
+          root = Path(".")
+          skill = root / "SKILL.md"
+          assert skill.exists(), "SKILL.md missing"
+          text = skill.read_text(encoding="utf-8")
+          assert text.startswith("---\n"), "SKILL.md frontmatter missing"
+          _, fm, body = text.split("---", 2)
+          data = parse_simple_yaml(fm)
+          assert data["name"] == "keep-codex-fast"
+          assert "description" in data and "Codex" in data["description"]
+          assert "archive" in body.lower()
+          assert "handoff" in body.lower()
+
+          openai_yaml = root / "agents" / "openai.yaml"
+          assert openai_yaml.exists(), "agents/openai.yaml missing"
+          oy = parse_simple_yaml(openai_yaml.read_text(encoding="utf-8"))
+          assert oy["interface"]["display_name"] == "Keep Codex Fast"
+          assert "$keep-codex-fast" in oy["interface"]["default_prompt"]
+          PY
+
+      - name: Python syntax check
+        run: python -m py_compile scripts/keep_codex_fast.py tests/smoke_test.py
+
+      - name: Fake Codex-home smoke test
+        run: python tests/smoke_test.py
+
+      - name: Safety scan
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          banned = [
+              "rm -rf",
+              "Remove-Item",
+              "shutil.rmtree",
+              "C:\\Users\\USER",
+              "gho_",
+              "OPENAI_API_KEY",
+              "auth.json",
+              "90%",
+          ]
+          allow_files = {".github/workflows/ci.yml"}
+          failures = []
+          for path in Path(".").rglob("*"):
+              if not path.is_file() or ".git" in path.parts:
+                  continue
+              if path.as_posix() in allow_files:
+                  continue
+              try:
+                  text = path.read_text(encoding="utf-8")
+              except UnicodeDecodeError:
+                  continue
+              for pattern in banned:
+                  if pattern in text:
+                      failures.append(f"{path}: contains banned pattern {pattern!r}")
+          if failures:
+              raise SystemExit("\n".join(failures))
+          PY

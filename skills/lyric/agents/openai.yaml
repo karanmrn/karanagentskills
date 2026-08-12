@@ -1,0 +1,4 @@
+interface:
+  display_name: "Lyric"
+  short_description: "Turn a question into a poem or song"
+  default_prompt: "Use $lyric to turn this question into a poem or song lyric."

@@ -1,0 +1,7 @@
+interface:
+  display_name: "Codex Orchestration"
+  short_description: "Plan, review, design, and build with multiple models"
+  default_prompt: "Use $codex-orchestration:codex-orchestration to configure model roles."
+
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Maintainer Orchestrator"
+  short_description: "Coordinate one Codex app thread per project"
+  default_prompt: "Use $maintainer-orchestrator to coordinate one Codex app thread per project, keep skill maintenance in the root session, keep collaboration subagents read-only and support-only, protect forgotten work, autonomously update dependencies, serialize exact-head landing, capture durable decisions, and propose verified releases."

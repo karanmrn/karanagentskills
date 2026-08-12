@@ -1,0 +1,4 @@
+interface:
+  display_name: "Fleet Maintenance"
+  short_description: "Unify full and worker Macs safely"
+  default_prompt: "Use $fleet-maintenance to audit profile drift and safely update my full and worker Macs."

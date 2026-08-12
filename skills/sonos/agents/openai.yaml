@@ -1,0 +1,4 @@
+interface:
+  display_name: "Sonos"
+  short_description: "Control Sonos music and YouTube playback"
+  default_prompt: "Use $sonos to search music, control rooms/groups, manage playback and queues, and handle YouTube-to-Sonos workflows."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Xcode Sync"
+  short_description: "Synchronize verified Xcode builds across Macs"
+  default_prompt: "Use $xcode-sync to synchronize signed Xcode builds across my supported Macs."

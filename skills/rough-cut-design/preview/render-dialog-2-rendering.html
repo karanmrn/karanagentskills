@@ -1,0 +1,36 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="_render-dialog.css"></head>
+<body>
+<div class="card-host">
+  <div class="dlg">
+    <div class="hd">
+      <h2>Rendering…</h2>
+      <span class="meta">42% · ~2.6s left</span>
+    </div>
+
+    <div class="prog-wrap">
+      <div class="prog-bg"></div>
+      <div class="prog-fg" style="width: 42%;"></div>
+      <div class="head" style="left: 42%;">
+        <svg viewBox="0 0 12 36" width="12" height="36" style="overflow: visible; display: block;">
+          <polygon points="1,1 11,1 6,7" fill="#C7361F"/>
+          <line x1="6" y1="7" x2="6" y2="34" stroke="#C7361F" stroke-width="1.25" stroke-linecap="square"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="stages">
+      <div class="stage stage-done"><span class="stage-dot dot-done">✓</span>Concatenating footages</div>
+      <div class="stage stage-active"><span class="stage-dot"><span class="dot-now"></span></span>Encoding (h264, 30fps, archive)</div>
+      <div class="stage stage-pending"><span class="stage-dot"><span class="dot-pending"></span></span>Verifying duration</div>
+    </div>
+
+    <div class="ft">
+      <span class="info">target 00:40.1 · 30fps · h264</span>
+      <div class="actions">
+        <button class="btn btn-quiet">Abort</button>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

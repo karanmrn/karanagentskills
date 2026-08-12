@@ -1,0 +1,4 @@
+interface:
+  display_name: "Joke"
+  short_description: "Turn a topic into a compact original joke"
+  default_prompt: "Use $joke to turn this situation into a compact original joke."

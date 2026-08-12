@@ -1,0 +1,28 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="_render-dialog.css"></head>
+<body>
+<div class="card-host">
+  <div class="dlg">
+    <div class="hd">
+      <div class="title-with-icon">
+        <span style="color: var(--danger); font-size: 16px; line-height: 1;">⚠</span>
+        <h2>Render failed.</h2>
+      </div>
+    </div>
+    <p class="body-copy">ffmpeg returned a non-zero exit. Error below; the log file is on disk too.</p>
+
+<pre class="err">[libx264 @ 0x7f8a2c008e00] error: encoder not found
+Conversion failed: passage_a4 boundary exceeds source duration
+  (00:13.2 > 00:12.8)</pre>
+
+    <div class="ft">
+      <span class="info">exit 1 · 0.8s</span>
+      <div class="actions">
+        <button class="btn btn-quiet">Dismiss</button>
+        <button class="btn btn-default">View log</button>
+        <button class="btn btn-primary">↻ Try again</button>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

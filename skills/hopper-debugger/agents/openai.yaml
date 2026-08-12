@@ -1,0 +1,5 @@
+interface:
+  display_name: "Hopper Debugger"
+  short_description: "Debug native binaries with Hopper MCP"
+  default_prompt: "Use $hopper-debugger to inspect AppKit or SwiftUI disassembly through Hopper MCP."
+

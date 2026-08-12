@@ -1,0 +1,45 @@
+# Optional Caddy overlay — adds auto-HTTPS (Let's Encrypt) in front
+# of the omnigent container. Use this when you're deploying on a
+# VPS/EC2/home server with a public domain pointed at it and you
+# don't already have a reverse proxy.
+#
+# Usage:
+#
+#   # 1. Edit .env and set:
+#   #      OMNIGENT_DOMAIN=omnigent.example.com
+#   #    (No ACME email needed — Let's Encrypt registers anonymously.
+#   #     To get expiry notices, add a global `email` block to Caddyfile.)
+#   #
+#   # 2. Point DNS A/AAAA records for the domain at this host.
+#   #
+#   # 3. Bring it up with BOTH compose files:
+#   docker compose -f docker-compose.yaml -f docker-compose.https.yaml up -d
+#
+# Caddy auto-provisions and renews the TLS cert via Let's Encrypt
+# (HTTP-01 challenge on :80). The omnigent container stops being
+# directly exposed — only :80 and :443 from Caddy are published.
+
+services:
+  omnigent:
+    # Drop the direct 8000 publish; Caddy proxies in over the docker network.
+    ports: !reset []
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - omnigent
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      OMNIGENT_DOMAIN: ${OMNIGENT_DOMAIN:?set OMNIGENT_DOMAIN in .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  caddy-data:
+  caddy-config:

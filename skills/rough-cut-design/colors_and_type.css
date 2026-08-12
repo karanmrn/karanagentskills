@@ -1,0 +1,402 @@
+/* =============================================================
+   Rough Cut — design tokens & semantic styles
+   ----------------------------------------------------------------
+   Three families: DM Serif Display (display), Newsreader (body),
+   JetBrains Mono (UI/data). All on Google Fonts.
+   ============================================================= */
+
+@import url("https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap");
+
+:root {
+  /* -----------------------------------------------------------
+     COLOR — surfaces
+     -----------------------------------------------------------
+     Two near-whites. Paper is the transcript / reading surface —
+     a hairline warmer so it reads as a printed page, not a screen.
+     Canvas is the workshop chrome — a hairline cooler/greyer.
+     The delta is subtle by design; the eye reads "page vs panel"
+     without ever saying "cream vs grey".
+  */
+  --paper:        #FAF9F5;  /* near-white, faintly warm — transcript */
+  --paper-2:      #FFFFFE;  /* the page itself / cards on paper */
+  --paper-edge:   #EFEDE6;  /* the page-edge gradient stop */
+
+  --canvas:       #F3F3F0;  /* near-white, faintly cool — chrome */
+  --canvas-2:     #FFFFFF;  /* pure white — popovers, dropdowns */
+  --canvas-hover: #ECECE8;  /* canvas hover state */
+  --canvas-press: #E4E4DF;  /* canvas pressed state */
+
+  --frame:        #0F0E0C;  /* warm black — video preview frame */
+
+  /* -----------------------------------------------------------
+     COLOR — ink
+     ----------------------------------------------------------- */
+  --ink:          #16161A;  /* primary text — slightly cool near-black */
+  --ink-2:        #5A5750;  /* secondary text — warm gray */
+  --ink-3:        #8B8678;  /* tertiary text / metadata */
+  --ink-4:        #B8B2A2;  /* placeholder / disabled */
+  --ink-on-dark:  #FBF7EB;  /* text on dark surfaces */
+
+  /* -----------------------------------------------------------
+     COLOR — lines
+     ----------------------------------------------------------- */
+  --line:         #E5E4DE;  /* hairline on canvas */
+  --line-paper:   #E5E2D5;  /* hairline on paper — a touch warmer */
+  --line-strong:  #CFCDC4;  /* emphasized hairline */
+  --line-dark:    #2A2924;  /* hairline on frame */
+
+  /* -----------------------------------------------------------
+     COLOR — accents
+     ----------------------------------------------------------- */
+  --vermillion:       #C7361F;  /* the editor's red pen */
+  --vermillion-soft:  #E8B8AE;  /* underline / hover wash */
+  --vermillion-wash:  #FBEDE9;  /* background tint for active rows */
+
+  --ultramarine:      #1F3A7A;  /* the agent's blue */
+  --ultramarine-soft: #B8C3DC;
+  --ultramarine-wash: #ECEFF7;
+
+  /* -----------------------------------------------------------
+     COLOR — semantic
+     ----------------------------------------------------------- */
+  --ok:        #2F5D3A;  /* render complete, success */
+  --ok-wash:   #E6EFE5;
+  --caution:   #A8780E;  /* render queued, warn */
+  --caution-wash: #F7EFD8;
+  --danger:    #9A2614;  /* destructive only */
+  --mute:      #9A9587;  /* skipped state, neutral */
+  --mute-wash: #ECEAE2;
+
+  /* -----------------------------------------------------------
+     TYPOGRAPHY — families
+     ----------------------------------------------------------- */
+  --font-display: "DM Serif Display", "GT Sectra", "Tiempos Headline", Georgia, serif;
+  --font-body:    "Newsreader", "Source Serif 4", "Iowan Old Style", Georgia, serif;
+  --font-mono:    "JetBrains Mono", "Berkeley Mono", "IBM Plex Mono", ui-monospace, monospace;
+
+  /* -----------------------------------------------------------
+     TYPOGRAPHY — type scale (rem-based, 16px root)
+     ----------------------------------------------------------- */
+  --fs-xs:   0.6875rem; /* 11 — micro labels, kickers */
+  --fs-sm:   0.75rem;   /* 12 — UI labels, timestamps */
+  --fs-md:   0.8125rem; /* 13 — small body, captions */
+  --fs-base: 0.9375rem; /* 15 — base UI body */
+  --fs-lg:   1.0625rem; /* 17 — emphasized UI */
+  --fs-xl:   1.25rem;   /* 20 — small headings */
+  --fs-2xl:  1.5rem;    /* 24 — panel headings */
+  --fs-3xl:  2rem;      /* 32 — H2 */
+  --fs-4xl:  2.75rem;   /* 44 — H1 */
+  --fs-5xl:  4rem;      /* 64 — display */
+  --fs-6xl:  6rem;      /* 96 — hero display */
+
+  --fs-prose:    1.1875rem; /* 19 — transcript body */
+  --fs-prose-lg: 1.375rem;  /* 22 — transcript on wide screens */
+
+  /* -----------------------------------------------------------
+     TYPOGRAPHY — line heights & tracking
+     ----------------------------------------------------------- */
+  --lh-tight:   1;
+  --lh-snug:    1.2;
+  --lh-base:    1.45;
+  --lh-prose:   1.7;
+  --lh-loose:   1.85;
+
+  --tr-tightest: -0.04em;  /* display */
+  --tr-tighter:  -0.02em;
+  --tr-tight:    -0.01em;
+  --tr-normal:   0;
+  --tr-loose:    0.02em;
+  --tr-mono:     -0.01em;  /* JetBrains Mono looks better slightly tight */
+  --tr-kicker:   0.16em;   /* uppercase labels */
+  --tr-eyebrow:  0.18em;   /* even-more-spaced kickers */
+
+  /* -----------------------------------------------------------
+     SPACING — 4px grid
+     ----------------------------------------------------------- */
+  --space-0:  0;
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-7:  32px;
+  --space-8:  40px;
+  --space-9:  48px;
+  --space-10: 64px;
+  --space-11: 80px;
+  --space-12: 96px;
+
+  /* -----------------------------------------------------------
+     RADII
+     ----------------------------------------------------------- */
+  --radius-0:    0px;
+  --radius-1:    2px;
+  --radius-2:    4px;
+  --radius-pill: 999px;
+
+  /* -----------------------------------------------------------
+     SHADOWS — three steps; almost nothing
+     ----------------------------------------------------------- */
+  --shadow-0: none;
+  --shadow-1:
+    0 1px 0 rgba(22, 22, 26, 0.04),
+    0 8px 24px -12px rgba(22, 22, 26, 0.18);
+  --shadow-2:
+    0 24px 60px -24px rgba(22, 22, 26, 0.28),
+    0 1px 0 rgba(22, 22, 26, 0.05);
+
+  /* -----------------------------------------------------------
+     MOTION
+     ----------------------------------------------------------- */
+  --ease:   cubic-bezier(0.2, 0.7, 0.2, 1);
+  --dur-1:  120ms;
+  --dur-2:  220ms;
+  --dur-3:  480ms;
+
+  /* -----------------------------------------------------------
+     Z-INDEX
+     ----------------------------------------------------------- */
+  --z-base:    0;
+  --z-sticky:  10;
+  --z-popover: 100;
+  --z-dock:    200;
+  --z-modal:   1000;
+}
+
+/* =============================================================
+   SEMANTIC ELEMENT STYLES
+   ----------------------------------------------------------------
+   Opt in by giving the host element class .rc-type, or just import
+   this stylesheet — root element rules apply globally.
+   ============================================================= */
+
+html {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  color: var(--ink);
+  background: var(--canvas);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-base);
+  line-height: var(--lh-base);
+  letter-spacing: var(--tr-mono);
+  color: var(--ink);
+  background: var(--canvas);
+}
+
+/* ----- display & headings ----- */
+
+.rc-display,
+h1.rc-h1 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--fs-5xl);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tr-tightest);
+  color: var(--ink);
+  margin: 0;
+}
+
+.rc-hero {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--fs-6xl);
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+  color: var(--ink);
+  margin: 0;
+}
+
+h1, .rc-h1 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--fs-4xl);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tr-tighter);
+  color: var(--ink);
+  margin: 0;
+}
+
+h2, .rc-h2 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--fs-3xl);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tr-tight);
+  color: var(--ink);
+  margin: 0;
+}
+
+h3, .rc-h3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--fs-2xl);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tr-tight);
+  color: var(--ink);
+  margin: 0;
+}
+
+h4, .rc-h4 {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: var(--fs-base);
+  line-height: var(--lh-base);
+  letter-spacing: var(--tr-mono);
+  color: var(--ink);
+  text-transform: none;
+  margin: 0;
+}
+
+/* ----- kicker / eyebrow / section-label ----- */
+
+.rc-kicker {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: var(--fs-xs);
+  line-height: 1;
+  letter-spacing: var(--tr-kicker);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.rc-eyebrow {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: var(--fs-xs);
+  line-height: 1;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.rc-section-label {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: var(--fs-xs);
+  letter-spacing: var(--tr-kicker);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* ----- body & prose ----- */
+
+p, .rc-body {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: var(--fs-base);
+  line-height: var(--lh-base);
+  letter-spacing: var(--tr-mono);
+  color: var(--ink);
+  margin: 0;
+}
+
+.rc-prose {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: var(--fs-prose);
+  line-height: var(--lh-prose);
+  letter-spacing: var(--tr-normal);
+  color: var(--ink);
+  text-wrap: pretty;
+}
+
+.rc-prose-lg {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: var(--fs-prose-lg);
+  line-height: var(--lh-prose);
+  letter-spacing: var(--tr-normal);
+  color: var(--ink);
+  text-wrap: pretty;
+}
+
+.rc-drop-cap::first-letter {
+  font-family: var(--font-display);
+  float: left;
+  font-size: 4.6em;
+  line-height: 0.78;
+  padding: 0.06em 0.08em 0 0;
+  color: var(--vermillion);
+}
+
+.rc-quiet {
+  color: var(--ink-2);
+}
+
+.rc-muted {
+  color: var(--ink-3);
+}
+
+.rc-disabled {
+  color: var(--ink-4);
+}
+
+/* ----- mono / data / timecode ----- */
+
+.rc-mono,
+code, kbd, samp {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  letter-spacing: var(--tr-mono);
+  color: var(--ink);
+}
+
+.rc-time {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+}
+
+.rc-label {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: var(--fs-sm);
+  letter-spacing: var(--tr-mono);
+  color: var(--ink);
+  text-transform: none;
+}
+
+/* ----- links ----- */
+
+a, .rc-link {
+  color: var(--ink);
+  text-decoration-line: underline;
+  text-decoration-color: var(--ink-3);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+  transition: text-decoration-color var(--dur-1) var(--ease);
+}
+
+a:hover, .rc-link:hover {
+  text-decoration-color: var(--vermillion);
+}
+
+.rc-link-agent {
+  color: var(--ultramarine);
+  text-decoration-color: var(--ultramarine-soft);
+}
+
+/* ----- selection ----- */
+
+::selection {
+  background: var(--vermillion-soft);
+  color: var(--ink);
+}
+
+/* ----- italic display use ----- */
+
+.rc-display-italic,
+em.rc-italic {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+}

@@ -1,0 +1,162 @@
+---
+name: codex-huge-context
+description: "Codex 1M context: direct OpenAI Responses API inference, safe Sol/Terra/Luna input headroom, Keychain delivery, and Mac fleet rollout."
+---
+
+# Codex Huge Context
+
+Use this skill when configuring, repairing, or auditing Codex's one-million-token context setup. The intended topology is a direct API inference route that preserves the normal ChatGPT login for Gmail, Calendar, and other connector OAuth:
+
+```text
+Codex inference -> Keychain auth helper -> https://api.openai.com/v1/responses
+Codex connectors -> normal ChatGPT login in auth.json
+```
+
+This is not an HTTP proxy. The API remains authoritative for access, actual model limits, and billing.
+
+## Safe input window
+
+GPT-5.6 Sol exposes a 1,050,000-token total context window and can produce up to 128,000 output tokens. Codex does not set a smaller output budget on normal Responses API turns, so the catalogue must describe the safe input allowance rather than the raw total:
+
+```text
+1,050,000 total - 128,000 maximum output = 922,000 safe input
+```
+
+Use the same safe input policy for the three direct-provider catalogue models:
+
+- `gpt-5.6-sol`
+- `gpt-5.6-terra`
+- `gpt-5.6-luna`
+
+Codex applies its normal 95% effective-window reserve to the 922,000-token input allowance, so it reports and guards about 875,900 usable tokens. Set automatic compaction to 700,000 total active tokens. That leaves about 175,900 tokens inside Codex's effective guard and 222,000 tokens before the provider's safe input ceiling for the next prompt, tool schemas and results, instructions, serialization overhead, and compaction itself. This larger margin is intentional: Codex 0.144.6 checks already-recorded context before adding the next user message and context updates, and a terminal response that crosses the threshold may not compact until the following turn. The observed large-context workload grew by about 144,000 tokens in one turn, which made the former 820,000 threshold too aggressive.
+
+Long-context requests above 272,000 input tokens use the provider's higher long-context pricing. Do not enable this route accidentally for workloads that do not benefit from it.
+
+## Required files
+
+`~/.codex/models-api-1m.json` must contain these values for all three model slugs while preserving the rest of each model entry:
+
+```json
+{
+  "context_window": 922000,
+  "max_context_window": 922000,
+  "auto_compact_token_limit": 700000
+}
+```
+
+Leave `effective_context_window_percent` absent to use Codex's 95% default, or set it explicitly to the integer `95`. Null, floating-point, or other values are invalid.
+
+The root section of `~/.codex/config.toml` needs:
+
+```toml
+model = "gpt-5.6-sol"
+model_provider = "openai_api_direct"
+model_context_window = 922000
+model_auto_compact_token_limit = 700000
+model_auto_compact_token_limit_scope = "total"
+model_catalog_json = "/Users/steipete/.codex/models-api-1m.json"
+
+[model_providers.openai_api_direct]
+name = "OpenAI API direct"
+base_url = "https://api.openai.com/v1"
+wire_api = "responses"
+requires_openai_auth = false
+
+[model_providers.openai_api_direct.auth]
+command = "/Users/steipete/.codex/bin/fetch-openai-inference-key.zsh"
+timeout_ms = 5000
+refresh_interval_ms = 300000
+```
+
+Replace legacy values such as `model_context_window = 1050000` or `model_auto_compact_token_limit = 233000`; do not leave duplicate root keys. Keep the scope at `total`, because the safety budget applies to the complete active request, not only content added after a compaction prefix.
+
+Before modifying a host, back up both config files to date-stamped sibling files. Do not replace unrelated project, plugin, MCP, notification, approval, model-selection, or reasoning settings.
+
+## API credential delivery
+
+The auth command reads a dedicated Keychain delivery copy, never a value in TOML or an environment variable:
+
+```zsh
+#!/bin/zsh
+set -euo pipefail
+exec /usr/bin/security find-generic-password \
+  -a Codex \
+  -s "Codex OpenAI inference API" \
+  -w
+```
+
+Use `$one-password` before handling the API key. The canonical value is the `OPENAI_API_KEY` field in Molty's `AI API Key - OpenAI - OPENAI_API_KEY - Serviceable Access` item. Read it through the service-account workflow inside the shared `op-work` tmux session and store/update only the Keychain copy. Never print, copy over SSH, place in a profile, or write it to a temporary file.
+
+The Keychain item should allow `/usr/bin/security`. A Keychain read normally produces no prompt. A login Keychain locked after reboot, or a command launched via noninteractive SSH, can fail with error 36 (`User interaction is not allowed`). Do not work around that failure with a plaintext file or a long-lived secret daemon: unlock the host from its local graphical session, install the item there, then use Codex from that local session.
+
+Before the first fresh or resumed Codex launch on a configured machine, run the secret-safe preflight. It validates the direct-provider config, safe input and compaction values, all three catalogue entries, helper executable, and non-empty helper delivery without printing the credential or helper stderr:
+
+```zsh
+ruby ~/.codex/skills/agent-scripts/codex-huge-context/scripts/preflight.rb
+```
+
+Do not mark a rollout complete or launch Codex when this fails. With `requires_openai_auth = false`, a missing Keychain delivery copy cannot fall back to the normal Codex login: the direct provider can reach `api.openai.com/v1/responses` without a bearer header and surface an opaque HTTP 401 instead. The preflight fails earlier with the bootstrap action needed. An unset `GITHUB_PAT_TOKEN` warning is independent and non-blocking for inference; it explains a concurrent GitHub MCP startup failure but must not be confused with OpenAI API authentication.
+
+## ChatGPT connector login
+
+`requires_openai_auth = false` applies only to the custom inference provider. The root Codex login must remain ChatGPT-authenticated for ChatGPT-connected plugins to work:
+
+```zsh
+codex login status
+```
+
+If it reports API-key login and the host needs Gmail, Calendar, or similar connectors, use `codex logout` followed by `codex login` from the local user session. Do not copy `auth.json` or OAuth tokens between Macs.
+
+## Fresh, resumed, and shared-server sessions
+
+`-m gpt-5.6-sol` selects a model, not a provider. Fresh sessions read the root `model_provider`; session metadata then records the chosen provider. Resuming preserves that recorded provider.
+
+Codex TUI sessions can reuse `~/.codex/app-server-control/app-server-control.sock`. A shared app server retains the configuration it loaded at startup, so changing files on disk does not update sessions attached to an older server. After changing context or authentication configuration:
+
+1. let active turns finish;
+2. restart the Codex desktop app and any shared CLI app server;
+3. start a fresh session for final proof;
+4. resume old sessions only when preserving their recorded model/provider is intentional.
+
+A same-value CLI override such as `codex -c 'model_provider="openai_api_direct"'` forces an embedded per-invocation app server and is useful for diagnosis without changing the provider or service tier, but it is not the fleet rollout's permanent fix.
+
+## Fleet rollout
+
+Use `$fleet-maintenance` and `$remote-mac` first. Read `~/Projects/manager/computers.yaml`, use live Tailscale state, deduplicate by hardware UUID, and exclude handed-off hosts. Audit all reachable hosts before mutation; mutate one host at a time.
+
+Peter's current personal Mac scope is MacBook Pro; the London and two San Francisco Mac Studios; the separately owned SF Mac Mini (`mac-mini-sf` / `steipete-mini-sf`); ClawMac; FoundationClaw; MegaClaw; and MiniClaw. FoundationClaw's provider account and Mac14,12 hardware identity are verified, but its previously working credential needs a provider reset before Tailscale enrollment, canonical checkouts, and remaining worker bootstrap can continue; the SF Mac Mini's trusted SSH/account path is pending; MiniClaw's canonical Tailscale identity is `miniclaw`. Verify each host identity and the `agent-scripts` checkout before changing any remote files. Keep a per-host result with:
+
+- config and catalogue backups;
+- root safe input, compaction threshold, and scope;
+- all three catalogue values;
+- preflight result in the intended local user session;
+- `codex login status`, without showing any credential;
+- direct API probe result;
+- shared app-server version and whether a restart remains pending.
+
+The `agent-scripts` skill checkout is normally exposed by `~/.codex/skills/agent-scripts`. After pushing this skill, fast-forward only eligible `~/Projects/agent-scripts` checkouts. Never reset, stash, overwrite an active or dirty checkout, or interrupt an active Codex turn merely to reload configuration; report it as pending instead.
+
+## Verification
+
+Run these in the intended local user session:
+
+```zsh
+ruby ~/.codex/skills/agent-scripts/codex-huge-context/scripts/preflight.rb
+codex login status
+jq -r '.models[] | select(.slug == "gpt-5.6-sol" or .slug == "gpt-5.6-terra" or .slug == "gpt-5.6-luna") | [.slug, .context_window, .max_context_window, .auto_compact_token_limit] | @tsv' ~/.codex/models-api-1m.json
+codex exec --skip-git-repo-check 'Reply with exactly: direct-api-safe-context-ok' </dev/null
+```
+
+Expect a successful preflight, `922000`, `922000`, and `700000` for every catalogue model, ChatGPT login for connector-capable hosts, and the exact probe response. A successful direct API probe does not prove connector OAuth; confirm `codex login status` separately.
+
+For final TUI proof, send the prompt text and Enter as separate terminal actions. Do not treat echoed input as the model's response.
+
+## Failure policy
+
+- API response still clamps or rejects a request: record the server response; do not claim a client catalogue override changed server entitlement.
+- Context overflow below 700,000 active tokens: preserve the session file and inspect the last token-accounting events before lowering the threshold further.
+- Context overflow above 700,000 without compaction: verify the running app-server version and loaded configuration; an old server can retain the previous threshold.
+- HTTP 401 `Missing bearer or basic authentication in header`: rerun the preflight and repair Keychain delivery; do not switch providers or ordinary Codex authentication.
+- Keychain error 36 remotely: leave the safe configuration staged and require a local GUI unlock. Never weaken secret storage.
+- Root API-key login but connectors are required: ask the local user to complete the ChatGPT login; inference can remain on the direct provider.
+- Existing `openai_api_direct` provider differs from this contract: inspect it before changing it; do not append a duplicate TOML table.

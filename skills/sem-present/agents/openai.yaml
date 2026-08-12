@@ -1,0 +1,4 @@
+interface:
+  display_name: "Sem Present"
+  short_description: "Prepare Sem runs for graph-based display"
+  default_prompt: "Use $sem-present to turn this Sem run directory into a validated render-ready view bundle."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "GitHub Cache Hygiene"
+  short_description: "Reduce GitHub API use with local caches"
+  default_prompt: "Use $github-cache-hygiene to handle GitHub issue, PR, and CI reads with local gitcrawl data and gh xcache before spending live GitHub API calls."

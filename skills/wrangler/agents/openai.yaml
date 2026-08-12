@@ -1,0 +1,4 @@
+interface:
+  display_name: "Wrangler"
+  short_description: "Use Wrangler without stale flags or wrong accounts"
+  default_prompt: "Use $wrangler for Cloudflare Wrangler CLI work: verify current flags, choose the right account, and run KV/tail/deploy commands safely."

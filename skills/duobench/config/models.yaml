@@ -1,0 +1,29 @@
+# Flat model registry. Every model is just an entry — add DeepSeek/MiniMax/etc. here and
+# nothing in src/ changes. `provider` and `model_id` are passed straight to Pi RPC
+# `set_model`. `pricing` is $/MTok and is the single source of truth for cost.
+models:
+  kimi-k2.6:
+    provider: kimi-coding       # verified working in Pi RPC set_model
+    model_id: kimi-for-coding
+    thinking: high              # Pi RPC set_thinking_level high
+    pricing: { input: 0.95, output: 4.00, cache_read: 0.16 }
+  gpt-5.5:
+    provider: openai-codex      # verified working in Pi RPC set_model
+    model_id: gpt-5.5
+    thinking: off               # Pi RPC set_thinking_level off
+    pricing: { input: 5.00, output: 30.00 }
+  claude-opus-4.8:
+    # PLACEHOLDER: Anthropic is not yet registered in this Pi install.
+    # Register it (auth.json + models.json) then set provider/model_id to the
+    # exact strings Pi exposes. The harness fails fast with a clear message if a
+    # condition references a model whose set_model is rejected by Pi.
+    provider: anthropic
+    model_id: claude-opus-4-8
+    # Anthropic prompt caching: read = 0.1x input, write (5m TTL) = 1.25x input
+    pricing: { input: 5.00, output: 25.00, cache_read: 0.50, cache_write: 6.25 }
+
+# Judge panel — explicit list of model keys, chosen independently of who competes.
+# Each judge scores every build; scores are averaged per build per dimension.
+judges:
+  - kimi-k2.6
+  - gpt-5.5

@@ -1,0 +1,4 @@
+interface:
+  display_name: "GitHub Project Triage"
+  short_description: "Always use for triage; URL-first GitHub queue cards"
+  default_prompt: "Use $github-project-triage to triage the current GitHub repo: scan open issues and PRs, read comments, treat Peter/owner comments as authoritative, print URL-first autonomous candidates plus needs-Peter blockers, and only start work when explicitly asked. When autonomous work is requested, process eligible items one at a time through verification, autoreview, green CI, merge/closeout, post-merge proof comments with exact tests and images when applicable, and a clean checkout."

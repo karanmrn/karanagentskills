@@ -1,0 +1,85 @@
+/* Shared chrome for /preview cards.
+   Each card is 700px wide. Pick its height to fit content (~120–300px). */
+
+@import url("../colors_and_type.css");
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  -webkit-font-smoothing: antialiased;
+}
+
+.card {
+  width: 700px;
+  min-height: 120px;
+  padding: 24px;
+  background: var(--canvas);
+  box-sizing: border-box;
+}
+
+.card.paper { background: var(--paper); }
+.card.split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  padding: 0;
+}
+.card.split > .half {
+  padding: 24px;
+  min-height: 120px;
+  box-sizing: border-box;
+}
+.card.split > .half.paper { background: var(--paper); }
+.card.split > .half.canvas { background: var(--canvas); }
+.card.split > .half + .half { border-left: 1px solid var(--line); }
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin: 0;
+  font-weight: 500;
+}
+
+.swatch {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-2);
+}
+
+.swatch-chip {
+  height: 64px;
+  border-radius: 2px;
+  border: 1px solid var(--line);
+}
+
+.swatch-name {
+  color: var(--ink);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.swatch-hex {
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-3);
+}

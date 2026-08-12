@@ -1,0 +1,65 @@
+# Keep the build context lean — only the bits the image actually needs.
+
+# VCS + IDE
+.git
+.gitignore
+.github
+.vscode
+.idea
+
+# Python build outputs
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+
+# Node build outputs. Critical: without this, a local `web/node_modules/`
+# (left over from `npm install` on the host) would be copied into the
+# build context and overlay the freshly-installed node_modules from the
+# Dockerfile's `npm ci` step — breaking `npm run build` with
+# "tsc: not found" if the host install was incomplete or wrong-platform.
+node_modules/
+
+# Test + dev artifacts
+tests/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.log
+
+# Local databases / large blobs that may be in the workdir
+*.db
+*.sqlite
+mlflow.db
+conv_*
+
+# web/ IS copied into the build context — the web-builder stage in
+# the Dockerfile runs `npm run build` against it to produce the SPA
+# bundle. The node_modules exclusion above keeps the host's install
+# from overlaying the container's.
+loadtest/
+demos/
+scripts/
+dev/
+designs/
+skills/
+.claude/
+
+# Docs that don't belong in the runtime image
+TODO.md
+AGENTS.md
+openapi.json
+
+# Databricks-Apps-specific deploy (Lakebase, UC Volumes, bundle config).
+# The OSS Docker entrypoint at deploy/docker/entrypoint.py IS copied.
+# The AWS Terraform/boto3 helpers at deploy/aws/ are deploy-time tooling,
+# not runtime — exclude them too.
+deploy/databricks/
+deploy/aws/

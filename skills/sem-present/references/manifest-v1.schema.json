@@ -1,0 +1,585 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://semantic-algos.local/schemas/sem-run-view/manifest-v1.schema.json",
+  "title": "Sem run view manifest v1",
+  "description": "The stable render-ready projection envelope for one Sem run.",
+  "type": "object",
+  "required": [
+    "kind",
+    "schemaVersion",
+    "generatedAt",
+    "run",
+    "artifacts",
+    "nodes",
+    "edges",
+    "groups",
+    "presentation",
+    "warnings",
+    "extensions"
+  ],
+  "properties": {
+    "kind": {
+      "const": "sem-run-view"
+    },
+    "schemaVersion": {
+      "type": "string",
+      "pattern": "^1\\.[0-9]+$"
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "run": {
+      "$ref": "#/$defs/run"
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/artifact"
+      }
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/node"
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/edge"
+      }
+    },
+    "groups": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/group"
+      }
+    },
+    "presentation": {
+      "$ref": "#/$defs/presentation"
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/warning"
+      }
+    },
+    "extensions": {
+      "$ref": "#/$defs/extensions"
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "idList": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/id"
+      },
+      "uniqueItems": true
+    },
+    "runRelativePath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?![A-Za-z][A-Za-z0-9+.-]*:)(?!\\.\\.?$)(?!\\.\\.?/)(?!.*//)(?!.*(?:/\\.\\.?/|/\\.\\.?$))(?!.*\\\\)(?!.*/$).+$"
+    },
+    "status": {
+      "enum": [
+        "unknown",
+        "pending",
+        "ready",
+        "running",
+        "succeeded",
+        "failed",
+        "blocked",
+        "partial"
+      ]
+    },
+    "run": {
+      "type": "object",
+      "required": [
+        "title",
+        "status",
+        "snapshot"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "$ref": "#/$defs/status"
+        },
+        "snapshot": {
+          "type": "boolean"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "snapshot": {
+                "const": true
+              }
+            },
+            "required": [
+              "snapshot"
+            ]
+          },
+          "then": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "unknown",
+                  "pending",
+                  "ready",
+                  "running"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "snapshot": {
+                "const": false
+              }
+            },
+            "required": [
+              "snapshot"
+            ]
+          },
+          "then": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "succeeded",
+                  "failed",
+                  "blocked",
+                  "partial"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": true
+    },
+    "artifact": {
+      "type": "object",
+      "required": [
+        "id",
+        "path",
+        "mediaType",
+        "role",
+        "title"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "path": {
+          "$ref": "#/$defs/runRelativePath"
+        },
+        "mediaType": {
+          "type": "string",
+          "minLength": 1
+        },
+        "role": {
+          "enum": [
+            "request",
+            "compiler-prompt",
+            "program",
+            "compile-notes",
+            "interpretation",
+            "run-log",
+            "input",
+            "application-prompt",
+            "application-result",
+            "application-status",
+            "attempt",
+            "finalizer-prompt",
+            "final",
+            "other"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ownerNodeId": {
+          "$ref": "#/$defs/id"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "operator": {
+      "type": "object",
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "standard-library",
+            "local",
+            "semantic-judgment"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "application": {
+      "type": "object",
+      "required": [
+        "directory"
+      ],
+      "properties": {
+        "directory": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/runRelativePath"
+            },
+            {
+              "pattern": "^applications/[^/]+$"
+            }
+          ]
+        },
+        "operator": {
+          "$ref": "#/$defs/operator"
+        }
+      },
+      "additionalProperties": true
+    },
+    "selector": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "whole"
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "heading"
+          ],
+          "properties": {
+            "kind": {
+              "const": "markdown-heading"
+            },
+            "heading": {
+              "type": "string",
+              "minLength": 1
+            },
+            "occurrence": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "panel": {
+      "type": "object",
+      "required": [
+        "id",
+        "label",
+        "artifactId",
+        "role",
+        "renderAs"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "artifactId": {
+          "$ref": "#/$defs/id"
+        },
+        "role": {
+          "enum": [
+            "primary",
+            "result",
+            "prompt",
+            "status",
+            "source",
+            "explanation",
+            "attempt",
+            "other"
+          ]
+        },
+        "renderAs": {
+          "enum": [
+            "markdown",
+            "code",
+            "plain-text",
+            "metadata",
+            "download"
+          ]
+        },
+        "selector": {
+          "$ref": "#/$defs/selector"
+        },
+        "order": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "defaultOpen": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": true
+    },
+    "node": {
+      "type": "object",
+      "required": [
+        "id",
+        "type",
+        "title",
+        "emphasis",
+        "panels"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "type": {
+          "enum": [
+            "source",
+            "stage",
+            "application",
+            "result",
+            "group",
+            "event",
+            "note"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "subtitle": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/status"
+        },
+        "emphasis": {
+          "enum": [
+            "primary",
+            "normal",
+            "context",
+            "hidden"
+          ]
+        },
+        "ordinal": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "groupIds": {
+          "$ref": "#/$defs/idList"
+        },
+        "panels": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/panel"
+          }
+        },
+        "application": {
+          "$ref": "#/$defs/application"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "application"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "required": [
+              "application",
+              "status"
+            ]
+          }
+        }
+      ],
+      "additionalProperties": true
+    },
+    "edge": {
+      "type": "object",
+      "required": [
+        "id",
+        "from",
+        "to",
+        "type"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "from": {
+          "$ref": "#/$defs/id"
+        },
+        "to": {
+          "$ref": "#/$defs/id"
+        },
+        "type": {
+          "enum": [
+            "value",
+            "control",
+            "return",
+            "contains",
+            "retry",
+            "provenance"
+          ]
+        },
+        "label": {
+          "type": "string"
+        },
+        "subtype": {
+          "type": "string",
+          "minLength": 1
+        },
+        "order": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": true
+    },
+    "group": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "type",
+        "memberNodeIds"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "enum": [
+            "fan-out",
+            "map",
+            "iteration",
+            "choice",
+            "retry",
+            "phase",
+            "other"
+          ]
+        },
+        "memberNodeIds": {
+          "$ref": "#/$defs/idList"
+        },
+        "parentGroupId": {
+          "$ref": "#/$defs/id"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "collapsedByDefault": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": true
+    },
+    "presentation": {
+      "type": "object",
+      "required": [
+        "entryNodeIds",
+        "featuredNodeIds",
+        "resultNodeIds"
+      ],
+      "properties": {
+        "entryNodeIds": {
+          "$ref": "#/$defs/idList"
+        },
+        "featuredNodeIds": {
+          "$ref": "#/$defs/idList"
+        },
+        "resultNodeIds": {
+          "$ref": "#/$defs/idList"
+        }
+      },
+      "additionalProperties": true
+    },
+    "warning": {
+      "type": "object",
+      "required": [
+        "message"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        },
+        "severity": {
+          "enum": [
+            "info",
+            "warning",
+            "error"
+          ]
+        },
+        "nodeIds": {
+          "$ref": "#/$defs/idList"
+        },
+        "artifactIds": {
+          "$ref": "#/$defs/idList"
+        }
+      },
+      "additionalProperties": true
+    },
+    "extensions": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)+$"
+      },
+      "additionalProperties": true
+    }
+  }
+}

@@ -1,0 +1,7 @@
+# Pulls the CI-built server image instead of building from source — the web UI
+# bundle is gitignored, so a plain `docker build` would fail. For platforms that
+# only run `docker build` (Railway, HF Spaces). Override the tag via
+# --build-arg OMNIGENT_IMAGE=ghcr.io/omnigent-ai/omnigent-server:vX.Y.Z.
+
+ARG OMNIGENT_IMAGE=ghcr.io/omnigent-ai/omnigent-server:latest
+FROM ${OMNIGENT_IMAGE}

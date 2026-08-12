@@ -1,0 +1,50 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="_preview.css"></head>
+<body>
+<style>
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+    letter-spacing: 0.04em;
+    padding: 5px 10px 5px 10px; border-radius: 999px;
+    background: var(--canvas-2); color: var(--ink); border: 1px solid var(--line);
+  }
+  .pill .dot { width: 6px; height: 6px; border-radius: 999px; background: var(--ink-3); }
+  .pill .k   { color: var(--ink-3); text-transform: lowercase; }
+  .pill .v   { color: var(--ink); }
+  .pill-ok   .dot { background: var(--ok); }
+  .pill-warn .dot { background: var(--caution); }
+  .pill-live .dot { background: var(--vermillion); }
+  .pill-agent .dot { background: var(--ultramarine); }
+  .pill-agent { background: var(--ultramarine-wash); border-color: var(--ultramarine-soft); }
+  .pill-keep { background: var(--vermillion-wash); border-color: var(--vermillion-soft); color: var(--vermillion); }
+  .tag {
+    font-family: var(--font-mono); font-size: 11px; color: var(--ink-2);
+    padding: 3px 6px; border-radius: 2px;
+    background: var(--mute-wash); letter-spacing: 0.04em;
+  }
+</style>
+<div class="card" style="padding: 22px 24px;">
+  <p class="eyebrow">Status pills</p>
+  <div style="margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px;">
+    <span class="pill pill-ok"><span class="dot"></span><span class="k">preview:</span><span class="v">up-to-date</span></span>
+    <span class="pill pill-warn"><span class="dot"></span><span class="k">preview:</span><span class="v">rendering</span></span>
+    <span class="pill pill-warn"><span class="dot"></span><span class="k">preview:</span><span class="v">queued</span></span>
+    <span class="pill"><span class="dot"></span><span class="k">preview:</span><span class="v">stale</span></span>
+    <span class="pill pill-agent"><span class="dot"></span><span class="k">agent:</span><span class="v">listening</span></span>
+    <span class="pill pill-agent"><span class="dot"></span><span class="k">agent:</span><span class="v">working</span></span>
+    <span class="pill"><span class="dot"></span><span class="k">agent:</span><span class="v">waiting</span></span>
+  </div>
+
+  <p class="eyebrow" style="margin-top: 18px;">Counts &amp; tags</p>
+  <div style="margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+    <span class="pill"><span class="v">3 footages · 1m 04s</span></span>
+    <span class="pill pill-keep"><span class="v">11 kept</span></span>
+    <span class="pill"><span class="v">2 skipped</span></span>
+    <span class="tag">Bunting</span>
+    <span class="tag">Interviewer</span>
+    <span class="tag">footage 02 · B-roll</span>
+    <span class="tag">¶ passage_a4</span>
+  </div>
+</div>
+</body></html>

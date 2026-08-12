@@ -1,0 +1,550 @@
+<!--
+  readout code pane (bundled asset from the readout skill).
+  Inline this ENTIRE block verbatim immediately before </body>.
+
+  It enhances every GitHub blob link (https://github.com/<org>/<repo>/blob/<commit>/<path>#L10-L20)
+  with an in-document source viewer: click opens the code in a split pane on the right (the
+  document content is pushed aside, not overlaid), clicking another reference reuses the pane,
+  and a close button (or Escape) dismisses it. The pane is resizable by dragging its left edge
+  (min width, persisted; double-click the edge to reset). Code is syntax-highlighted via
+  highlight.js, lazily loaded from a CDN only when the pane opens; offline it degrades to plain text.
+  Progressive enhancement: with JS disabled, or on modified clicks, links open GitHub normally.
+
+  Source resolution order:
+    1. snippets embedded at generation time in a script[type="application/json"][data-code-snippets]
+       block, keyed "org/repo@commit:path" -> {"start": first line number, "text": "lines", "full": bool}
+       or, for whole files compressed at generation time, {"gz": "base64 gzip", "full": true}
+       (inflated in the browser via DecompressionStream). Use scripts/embed_snippets.py to generate.
+    2. runtime fetch of raw.githubusercontent.com (user-initiated; works for public repos)
+    3. reader-supplied GitHub token: on an HTTP error the pane offers a paste-a-token form and
+       retries via api.github.com (fine-grained PAT, read-only Contents). The token lives in
+       sessionStorage for this tab only and is never written into the document.
+    4. fallback message with an "open on GitHub" link
+-->
+<style data-code-pane>
+  :root { --crp-w: min(44rem, 46vw); }
+  body { transition: margin-right 0.18s ease; }
+  html.crp-open body { margin-right: var(--crp-w); }
+  @media (max-width: 900px) {
+    :root { --crp-w: 100vw; }
+    html.crp-open body { margin-right: 0; }
+  }
+  .crp-pane {
+    position: fixed; top: 0; right: 0; bottom: 0;
+    width: var(--crp-w);
+    display: flex; flex-direction: column;
+    background: #f5f2eb; color: #2a2622;
+    border-left: 1px solid #d8d2c6;
+    z-index: 1000;
+    font-size: 0.8rem;
+  }
+  @media (prefers-color-scheme: dark) {
+    .crp-pane { background: #211f1c; color: #e8e4dc; border-left-color: #3a3733; }
+  }
+  .crp-head {
+    display: flex; align-items: center; gap: 0.7rem;
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid rgba(128, 118, 100, 0.3);
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.76rem;
+  }
+  .crp-title { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; direction: rtl; text-align: left; }
+  .crp-lines { flex: none; opacity: 0.6; }
+  .crp-gh { flex: none; color: inherit; opacity: 0.75; text-decoration: underline; white-space: nowrap; }
+  .crp-close {
+    flex: none; width: 1.7rem; height: 1.7rem;
+    border: 1px solid rgba(128, 118, 100, 0.4); border-radius: 6px;
+    background: transparent; color: inherit;
+    font-size: 1rem; line-height: 1; cursor: pointer;
+  }
+  .crp-close:hover { background: rgba(128, 118, 100, 0.15); }
+  .crp-resize {
+    position: absolute; left: -3px; top: 0; bottom: 0; width: 7px;
+    cursor: col-resize; z-index: 1001;
+  }
+  .crp-resize:hover, html.crp-resizing .crp-resize { background: rgba(128, 118, 100, 0.3); }
+  html.crp-resizing body { transition: none; }
+  html.crp-resizing, html.crp-resizing * { user-select: none; cursor: col-resize !important; }
+  .crp-body {
+    flex: 1 1 auto; overflow: auto;
+    padding: 0.5rem 0 2rem;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    line-height: 1.5; tab-size: 4;
+  }
+  .crp-line { display: flex; }
+  .crp-ln { flex: none; width: 3.4rem; padding-right: 0.9rem; text-align: right; opacity: 0.45; user-select: none; }
+  .crp-code { flex: 1 1 auto; white-space: pre; padding-right: 1rem; }
+  .crp-line.crp-hit { background: rgba(163, 148, 84, 0.22); }
+  .crp-msg { padding: 1.1rem 1.2rem; font-family: inherit; }
+  .crp-msg a { color: inherit; }
+  .crp-note { padding: 0.5rem 1.2rem 0.7rem; opacity: 0.65; font-size: 0.72rem; font-family: inherit; }
+  .crp-token { display: flex; gap: 0.5rem; margin: 0.8rem 0 0.4rem; }
+  .crp-token input {
+    flex: 1 1 auto; min-width: 0;
+    font: inherit; color: inherit;
+    background: rgba(128, 118, 100, 0.08);
+    border: 1px solid rgba(128, 118, 100, 0.4); border-radius: 6px;
+    padding: 0.35rem 0.6rem;
+  }
+  .crp-token button {
+    flex: none;
+    font: inherit; color: inherit; cursor: pointer;
+    background: rgba(128, 118, 100, 0.15);
+    border: 1px solid rgba(128, 118, 100, 0.4); border-radius: 6px;
+    padding: 0.35rem 0.8rem;
+  }
+  .crp-token button:hover { background: rgba(128, 118, 100, 0.25); }
+  .crp-token-note { opacity: 0.65; font-size: 0.72rem; margin: 0.4rem 0 0.8rem; }
+  /* muted-primaries highlight.js theme on warm paper, scoped to the pane (light + dark) */
+  .crp-pane .hljs-comment, .crp-pane .hljs-doctag, .crp-pane .hljs-quote { color: #91887a; font-style: italic; }
+  .crp-pane .hljs-string, .crp-pane .hljs-regexp, .crp-pane .hljs-addition { color: #3d6247; }
+  .crp-pane .hljs-keyword, .crp-pane .hljs-literal, .crp-pane .hljs-selector-tag, .crp-pane .hljs-section { color: #31567d; }
+  .crp-pane .hljs-number, .crp-pane .hljs-symbol, .crp-pane .hljs-bullet { color: #7d6a2e; }
+  .crp-pane .hljs-title, .crp-pane .hljs-name { color: #794046; }
+  .crp-pane .hljs-type, .crp-pane .hljs-built_in, .crp-pane .hljs-selector-class, .crp-pane .hljs-selector-id { color: #6e5540; }
+  .crp-pane .hljs-attr, .crp-pane .hljs-property, .crp-pane .hljs-variable, .crp-pane .hljs-template-variable, .crp-pane .hljs-attribute { color: #5a6b3f; }
+  .crp-pane .hljs-meta, .crp-pane .hljs-params, .crp-pane .hljs-operator, .crp-pane .hljs-punctuation { color: #6d675c; }
+  .crp-pane .hljs-deletion { color: #8e3b3b; }
+  .crp-pane .hljs-emphasis { font-style: italic; }
+  .crp-pane .hljs-strong { font-weight: 600; }
+  @media (prefers-color-scheme: dark) {
+    .crp-pane .hljs-comment, .crp-pane .hljs-doctag, .crp-pane .hljs-quote { color: #837a6b; }
+    .crp-pane .hljs-string, .crp-pane .hljs-regexp, .crp-pane .hljs-addition { color: #9ab894; }
+    .crp-pane .hljs-keyword, .crp-pane .hljs-literal, .crp-pane .hljs-selector-tag, .crp-pane .hljs-section { color: #8caec9; }
+    .crp-pane .hljs-number, .crp-pane .hljs-symbol, .crp-pane .hljs-bullet { color: #c2ae76; }
+    .crp-pane .hljs-title, .crp-pane .hljs-name { color: #c99a94; }
+    .crp-pane .hljs-type, .crp-pane .hljs-built_in, .crp-pane .hljs-selector-class, .crp-pane .hljs-selector-id { color: #b39a7e; }
+    .crp-pane .hljs-attr, .crp-pane .hljs-property, .crp-pane .hljs-variable, .crp-pane .hljs-template-variable, .crp-pane .hljs-attribute { color: #a9b98a; }
+    .crp-pane .hljs-meta, .crp-pane .hljs-params, .crp-pane .hljs-operator, .crp-pane .hljs-punctuation { color: #9a9284; }
+    .crp-pane .hljs-deletion { color: #c98f8f; }
+  }
+</style>
+<script data-code-pane>
+(function () {
+  "use strict";
+  var BLOB = /^https:\/\/github\.com\/([^\/]+)\/([^\/]+)\/blob\/([^\/]+)\/([^#?]+)(?:#L(\d+)(?:-L(\d+))?)?$/;
+  var TOKEN_KEY = "crp-gh-token";
+  var WIDTH_KEY = "crp-w-px";
+  var MIN_W = 320; // px — minimum pane width when dragging
+  var HLJS_CDN = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js";
+  var EXT_LANG = {
+    go: "go", rs: "rust", py: "python", rb: "ruby", sql: "sql", lua: "lua", pl: "perl",
+    js: "javascript", mjs: "javascript", cjs: "javascript", jsx: "javascript",
+    ts: "typescript", tsx: "typescript",
+    sh: "bash", bash: "bash", zsh: "bash",
+    c: "c", h: "c", cpp: "cpp", cc: "cpp", cxx: "cpp", hpp: "cpp", hh: "cpp",
+    java: "java", kt: "kotlin", kts: "kotlin", swift: "swift", cs: "csharp",
+    m: "objectivec", mm: "objectivec", php: "php", r: "r",
+    yaml: "yaml", yml: "yaml", toml: "ini", ini: "ini", conf: "ini",
+    json: "json", jsonc: "json", xml: "xml", html: "xml", htm: "xml", svg: "xml",
+    css: "css", scss: "scss", less: "less", md: "markdown", markdown: "markdown",
+    makefile: "makefile", diff: "diff", patch: "diff"
+  };
+
+  var snippets = {};
+  var snipEl = document.querySelector('script[type="application/json"][data-code-snippets]');
+  if (snipEl) { try { snippets = JSON.parse(snipEl.textContent) || {}; } catch (e) { snippets = {}; } }
+
+  var cache = Object.create(null); // rawUrl -> file text
+  var reqId = 0;
+  var memToken = "";
+  var hljsPromise = null;
+  var pane = null, titleEl, linesEl, ghEl, bodyEl;
+
+  function getToken() {
+    if (memToken) return memToken;
+    try { return window.sessionStorage.getItem(TOKEN_KEY) || ""; } catch (e) { return ""; }
+  }
+  function setToken(t) {
+    memToken = t;
+    try { window.sessionStorage.setItem(TOKEN_KEY, t); } catch (e) {}
+  }
+
+  function storedWidth() {
+    try { return parseInt(window.localStorage.getItem(WIDTH_KEY), 10) || 0; } catch (e) { return 0; }
+  }
+  function storeWidth(px) {
+    try { window.localStorage.setItem(WIDTH_KEY, String(px)); } catch (e) {}
+  }
+  function clampWidth(px) {
+    var max = Math.max(MIN_W, window.innerWidth - 280); // keep some document visible
+    return Math.min(Math.max(px, MIN_W), max);
+  }
+  function applyWidth(px) {
+    document.documentElement.style.setProperty("--crp-w", px + "px");
+  }
+  function resetWidth() {
+    try { window.localStorage.removeItem(WIDTH_KEY); } catch (e) {}
+    document.documentElement.style.removeProperty("--crp-w");
+  }
+  // Applies the remembered width, and defers to the stylesheet (full-width pane) on
+  // narrow screens — an inline --crp-w would otherwise override the media query.
+  function syncWidth() {
+    if (window.innerWidth <= 900) { document.documentElement.style.removeProperty("--crp-w"); return; }
+    var w = storedWidth();
+    if (w) applyWidth(clampWidth(w));
+  }
+
+  function langFor(path) {
+    var base = (path || "").split("/").pop().toLowerCase();
+    if (base === "makefile") return "makefile";
+    if (base === "dockerfile") return "dockerfile";
+    var m = /\.([a-z0-9_]+)$/.exec(base);
+    return m ? EXT_LANG[m[1]] || null : null;
+  }
+
+  function loadHljs() {
+    if (window.hljs) return Promise.resolve(window.hljs);
+    if (hljsPromise) return hljsPromise;
+    hljsPromise = new Promise(function (resolve) {
+      var s = document.createElement("script");
+      s.src = HLJS_CDN;
+      s.onload = function () { resolve(window.hljs || null); };
+      s.onerror = function () { resolve(null); };
+      document.head.appendChild(s);
+    });
+    return hljsPromise;
+  }
+
+  // Split highlight.js output HTML into per-line HTML, re-opening spans that cross newlines.
+  function splitHighlighted(html) {
+    var lines = html.split("\n");
+    var open = [];
+    var out = [];
+    var tagRe = /<span[^>]*>|<\/span>/g;
+    for (var i = 0; i < lines.length; i++) {
+      var prefix = open.join("");
+      var line = lines[i];
+      var m;
+      tagRe.lastIndex = 0;
+      while ((m = tagRe.exec(line))) {
+        if (m[0] === "</span>") open.pop(); else open.push(m[0]);
+      }
+      var suffix = "";
+      for (var k = 0; k < open.length; k++) suffix += "</span>";
+      out.push(prefix + line + suffix);
+    }
+    return out;
+  }
+
+  function inflate(b64) {
+    return new Promise(function (resolve, reject) {
+      if (typeof DecompressionStream === "undefined") { reject(new Error("DecompressionStream unavailable")); return; }
+      var bin = atob(b64);
+      var bytes = new Uint8Array(bin.length);
+      for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      var stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
+      new Response(stream).text().then(resolve, reject);
+    });
+  }
+
+  // Resolves an embedded snippet entry to {text, start, full} (inflating "gz" once), or null.
+  function resolveSnippet(key) {
+    var snip = snippets[key];
+    if (!snip) return Promise.resolve(null);
+    if (typeof snip.text === "string") {
+      return Promise.resolve({ text: snip.text, start: snip.start || 1, full: !!snip.full });
+    }
+    if (typeof snip.gz === "string") {
+      return inflate(snip.gz).then(function (text) {
+        snippets[key] = { text: text, start: snip.start || 1, full: !!snip.full };
+        return snippets[key];
+      }, function () { return null; });
+    }
+    return Promise.resolve(null);
+  }
+
+  function ensurePane() {
+    if (pane) return;
+    pane = document.createElement("aside");
+    pane.className = "crp-pane";
+    pane.setAttribute("role", "complementary");
+    pane.setAttribute("aria-label", "Source viewer");
+    pane.tabIndex = -1;
+
+    var head = document.createElement("div");
+    head.className = "crp-head";
+    titleEl = document.createElement("span"); titleEl.className = "crp-title";
+    linesEl = document.createElement("span"); linesEl.className = "crp-lines";
+    ghEl = document.createElement("a"); ghEl.className = "crp-gh"; ghEl.textContent = "open on GitHub";
+    ghEl.target = "_blank"; ghEl.rel = "noopener";
+    var close = document.createElement("button");
+    close.className = "crp-close"; close.type = "button";
+    close.setAttribute("aria-label", "Close source viewer");
+    close.textContent = "\u00d7";
+    close.addEventListener("click", closePane);
+    head.appendChild(titleEl); head.appendChild(linesEl); head.appendChild(ghEl); head.appendChild(close);
+
+    bodyEl = document.createElement("div");
+    bodyEl.className = "crp-body";
+
+    var grip = document.createElement("div");
+    grip.className = "crp-resize";
+    grip.setAttribute("aria-hidden", "true");
+    grip.title = "Drag to resize · double-click to reset";
+    grip.addEventListener("pointerdown", function (ev) {
+      if (ev.button !== 0) return;
+      ev.preventDefault();
+      grip.setPointerCapture(ev.pointerId);
+      document.documentElement.classList.add("crp-resizing");
+      function move(e) {
+        applyWidth(clampWidth(Math.round(window.innerWidth - e.clientX)));
+      }
+      function up(e) {
+        document.documentElement.classList.remove("crp-resizing");
+        storeWidth(clampWidth(Math.round(window.innerWidth - e.clientX)));
+        grip.removeEventListener("pointermove", move);
+        grip.removeEventListener("pointerup", up);
+        grip.removeEventListener("pointercancel", up);
+      }
+      grip.addEventListener("pointermove", move);
+      grip.addEventListener("pointerup", up);
+      grip.addEventListener("pointercancel", up);
+    });
+    grip.addEventListener("dblclick", resetWidth);
+
+    pane.appendChild(grip);
+    pane.appendChild(head);
+    pane.appendChild(bodyEl);
+    document.body.appendChild(pane);
+    document.documentElement.classList.add("crp-open");
+    syncWidth();
+  }
+
+  function closePane() {
+    if (pane && pane.parentNode) pane.parentNode.removeChild(pane);
+    pane = null;
+    document.documentElement.classList.remove("crp-open");
+  }
+
+  function showMessage(text, href) {
+    bodyEl.textContent = "";
+    var div = document.createElement("div");
+    div.className = "crp-msg";
+    var p = document.createElement("p");
+    p.textContent = text;
+    div.appendChild(p);
+    if (href) {
+      var a = document.createElement("a");
+      a.href = href; a.target = "_blank"; a.rel = "noopener";
+      a.textContent = "Open on GitHub instead";
+      div.appendChild(a);
+    }
+    bodyEl.appendChild(div);
+  }
+
+  function showTokenForm(ref, notice) {
+    bodyEl.textContent = "";
+    var div = document.createElement("div");
+    div.className = "crp-msg";
+    var p = document.createElement("p");
+    p.textContent = notice;
+    div.appendChild(p);
+
+    var form = document.createElement("form");
+    form.className = "crp-token";
+    var input = document.createElement("input");
+    input.type = "password";
+    input.placeholder = "github_pat_\u2026";
+    input.setAttribute("aria-label", "GitHub token");
+    input.autocomplete = "off";
+    var btn = document.createElement("button");
+    btn.type = "submit";
+    btn.textContent = "View with token";
+    form.appendChild(input); form.appendChild(btn);
+    form.addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      var t = input.value.trim();
+      if (!t) return;
+      setToken(t);
+      show(ref);
+    });
+    div.appendChild(form);
+
+    var note = document.createElement("p");
+    note.className = "crp-token-note";
+    note.textContent = "Use a fine-grained personal access token with read-only Contents permission, scoped to this repo. It is kept in sessionStorage for this tab only and never written into the document.";
+    div.appendChild(note);
+
+    var a = document.createElement("a");
+    a.href = ref.href; a.target = "_blank"; a.rel = "noopener";
+    a.textContent = "Open on GitHub instead";
+    div.appendChild(a);
+
+    bodyEl.appendChild(div);
+    input.focus();
+  }
+
+  function renderLines(text, startNum, hitFrom, hitTo, note, path, live) {
+    bodyEl.textContent = "";
+    if (note) {
+      var n = document.createElement("div");
+      n.className = "crp-note";
+      n.textContent = note;
+      bodyEl.appendChild(n);
+    }
+    var lines = text.split("\n");
+    if (lines.length && lines[lines.length - 1] === "") lines.pop();
+    var frag = document.createDocumentFragment();
+    var target = null;
+    var codeEls = [];
+    for (var i = 0; i < lines.length; i++) {
+      var num = startNum + i;
+      var row = document.createElement("div");
+      row.className = "crp-line" + (hitFrom && num >= hitFrom && num <= hitTo ? " crp-hit" : "");
+      if (!target && hitFrom && num >= hitFrom) target = row;
+      var ln = document.createElement("span"); ln.className = "crp-ln"; ln.textContent = String(num);
+      var code = document.createElement("span"); code.className = "crp-code"; code.textContent = lines[i];
+      codeEls.push(code);
+      row.appendChild(ln); row.appendChild(code);
+      frag.appendChild(row);
+    }
+    bodyEl.appendChild(frag);
+    if (target) {
+      var y = target.offsetTop - bodyEl.clientHeight * 0.33;
+      bodyEl.scrollTop = y > 0 ? y : 0;
+    } else {
+      bodyEl.scrollTop = 0;
+    }
+
+    // Upgrade to syntax-highlighted lines in place once highlight.js is available.
+    var lang = langFor(path);
+    if (!lang) return;
+    loadHljs().then(function (hljs) {
+      if (!hljs || !live()) return;
+      if (!hljs.getLanguage(lang)) return;
+      var highlighted;
+      try { highlighted = hljs.highlight(text, { language: lang, ignoreIllegals: true }).value; }
+      catch (e) { return; }
+      var htmlLines = splitHighlighted(highlighted);
+      for (var i = 0; i < codeEls.length && i < htmlLines.length; i++) {
+        codeEls[i].innerHTML = htmlLines[i];
+      }
+    });
+  }
+
+  function apiFetch(ref, token) {
+    var url = "https://api.github.com/repos/" + ref.org + "/" + ref.repo + "/contents/" +
+      encodeURIComponent(ref.path).replace(/%2F/gi, "/") + "?ref=" + encodeURIComponent(ref.commit);
+    return fetch(url, {
+      headers: { "Accept": "application/vnd.github.raw+json", "Authorization": "Bearer " + token }
+    }).then(function (res) {
+      if (!res.ok) { var e = new Error("HTTP " + res.status); e.httpStatus = res.status; throw e; }
+      return res.text();
+    });
+  }
+
+  function show(ref) {
+    ensurePane();
+    var my = ++reqId;
+    titleEl.textContent = "\u200e" + ref.path;
+    titleEl.title = ref.org + "/" + ref.repo + "@" + ref.commit + ":" + ref.path;
+    linesEl.textContent = ref.from ? (ref.to && ref.to !== ref.from ? "L" + ref.from + "\u2013L" + ref.to : "L" + ref.from) : "";
+    ghEl.href = ref.href;
+    var hitFrom = ref.from || 0;
+    var hitTo = ref.to || ref.from || 0;
+    var key = ref.org + "/" + ref.repo + "@" + ref.commit + ":" + ref.path;
+    var rawUrl = "https://raw.githubusercontent.com/" + ref.org + "/" + ref.repo + "/" + ref.commit + "/" + ref.path;
+    var live = function () { return my === reqId && !!pane; };
+    var resolvedSnip = null;
+
+    function done(text, startNum, note) {
+      if (!live()) return;
+      renderLines(text, startNum, hitFrom, hitTo, note, ref.path, live);
+    }
+    function snippetCovers(s) {
+      if (!s) return false;
+      if (!ref.from || s.full) return true;
+      var end = s.start + s.text.split("\n").length - 1;
+      return ref.from >= s.start && hitTo <= end;
+    }
+    function fallbackAfterHttp(status) {
+      if (!live()) return;
+      if (resolvedSnip) {
+        done(resolvedSnip.text, resolvedSnip.start, "Excerpt embedded at generation time \u2014 couldn't fetch the full file (HTTP " + status + ").");
+      } else {
+        showTokenForm(ref, "GitHub returned HTTP " + status + " for this file \u2014 it may be private (paste a token to view it here), or the file/commit may not exist.");
+      }
+    }
+    function fallbackOffline() {
+      if (!live()) return;
+      if (resolvedSnip) {
+        done(resolvedSnip.text, resolvedSnip.start, "Excerpt embedded at generation time \u2014 couldn't reach GitHub.");
+      } else {
+        showMessage("Couldn't reach GitHub \u2014 you may be offline.", ref.href);
+      }
+    }
+    function fetchChain() {
+      if (typeof cache[rawUrl] === "string") { done(cache[rawUrl], 1, null); return; }
+      showMessage("Loading " + ref.path + " @ " + ref.commit.slice(0, 10) + "\u2026", null);
+      fetch(rawUrl).then(function (res) {
+        if (!res.ok) { var e = new Error("HTTP " + res.status); e.httpStatus = res.status; throw e; }
+        return res.text();
+      }).then(function (text) {
+        cache[rawUrl] = text;
+        done(text, 1, null);
+      }).catch(function (err) {
+        if (!live()) return;
+        if (!(err && err.httpStatus)) { fallbackOffline(); return; }
+        var token = getToken();
+        if (!token) { fallbackAfterHttp(err.httpStatus); return; }
+        apiFetch(ref, token).then(function (text) {
+          cache[rawUrl] = text;
+          done(text, 1, null);
+        }).catch(function (err2) {
+          if (!live()) return;
+          if (err2 && (err2.httpStatus === 401 || err2.httpStatus === 403)) {
+            showTokenForm(ref, "GitHub rejected the saved token (HTTP " + err2.httpStatus + "). Paste a token with read access to " + ref.org + "/" + ref.repo + ":");
+          } else if (err2 && err2.httpStatus) {
+            fallbackAfterHttp(err2.httpStatus);
+          } else {
+            fallbackOffline();
+          }
+        });
+      });
+    }
+
+    resolveSnippet(key).then(function (s) {
+      if (!live()) return;
+      resolvedSnip = s;
+      if (snippetCovers(s)) {
+        done(s.text, s.start, s.full ? null : "Excerpt embedded at generation time \u2014 full file on GitHub.");
+        return;
+      }
+      fetchChain();
+    });
+    pane.focus();
+  }
+
+  document.addEventListener("click", function (ev) {
+    if (ev.defaultPrevented || ev.button !== 0 || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey) return;
+    var el = ev.target && ev.target.closest ? ev.target.closest("a[href]") : null;
+    if (!el) return;
+    if (pane && pane.contains(el)) return; // pane-internal links always go to GitHub
+    var m = BLOB.exec(el.href);
+    if (!m) return;
+    ev.preventDefault();
+    show({
+      org: m[1], repo: m[2], commit: m[3], path: m[4],
+      from: m[5] ? parseInt(m[5], 10) : null,
+      to: m[6] ? parseInt(m[6], 10) : null,
+      href: el.href
+    });
+  });
+
+  document.addEventListener("keydown", function (ev) {
+    if (ev.key === "Escape" && pane) {
+      var inForm = document.activeElement && pane.contains(document.activeElement) && document.activeElement.tagName === "INPUT";
+      if (!inForm) closePane();
+    }
+  });
+
+  window.addEventListener("resize", function () {
+    if (pane) syncWidth();
+  });
+
+  if (typeof window !== "undefined" && window.__crpTest) {
+    window.__crpTest({ splitHighlighted: splitHighlighted, langFor: langFor, clampWidth: clampWidth });
+  }
+})();
+</script>

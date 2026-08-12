@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300" height="900" viewBox="0 0 1300 900" role="img" aria-labelledby="title desc">
+  <title id="title">Keep Codex Fast simple checklist</title>
+  <desc id="desc">A simple checklist showing what the skill does: report, handoff, backup, archive safely, continue fresh.</desc>
+  <defs>
+    <style>
+      .bg { fill: #f8fafc; }
+      .panel { fill: #ffffff; stroke: #dbe4ef; stroke-width: 2; }
+      .blue { fill: #eef6ff; stroke: #8ec5ff; stroke-width: 2; }
+      .green { fill: #effaf3; stroke: #8bd89d; stroke-width: 2; }
+      .amber { fill: #fff8e8; stroke: #e7bd62; stroke-width: 2; }
+      .ink { fill: #0b1220; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .muted { fill: #526174; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .check { fill: #2f80ed; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-weight: 850; }
+      .line { stroke: #c6d2df; stroke-width: 4; stroke-linecap: round; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1300" height="900" rx="34"/>
+  <text x="84" y="88" class="ink" font-size="46" font-weight="820">Use keep-codex-fast like this</text>
+  <text x="84" y="130" class="muted" font-size="24">A simple checklist for preserving context before archiving local weight.</text>
+
+  <line x1="142" y1="220" x2="142" y2="690" class="line"/>
+
+  <g transform="translate(84 190)">
+    <circle cx="58" cy="50" r="30" fill="#eef6ff" stroke="#2f80ed" stroke-width="2"/>
+    <text x="48" y="61" class="check" font-size="29">1</text>
+    <rect x="118" y="0" width="990" height="100" rx="24" class="panel"/>
+    <text x="152" y="40" class="ink" font-size="27" font-weight="780">Get a report</text>
+    <text x="152" y="72" class="muted" font-size="20">Codex shows large sessions, stale worktrees, logs, path issues, and Node processes. No changes yet.</text>
+  </g>
+
+  <g transform="translate(84 320)">
+    <circle cx="58" cy="50" r="30" fill="#eef6ff" stroke="#2f80ed" stroke-width="2"/>
+    <text x="48" y="61" class="check" font-size="29">2</text>
+    <rect x="118" y="0" width="990" height="130" rx="24" class="blue"/>
+    <text x="152" y="40" class="ink" font-size="27" font-weight="780">Make handoffs for important active chats</text>
+    <text x="152" y="74" class="muted" font-size="20">Prompt: "Create a comprehensive handoff and reactivation prompt for this repo."</text>
+    <text x="152" y="104" class="muted" font-size="20">This is what lets you archive old chat history without losing your place.</text>
+  </g>
+
+  <g transform="translate(84 480)">
+    <circle cx="58" cy="50" r="30" fill="#fff8e8" stroke="#e7bd62" stroke-width="2"/>
+    <text x="48" y="61" class="check" font-size="29">3</text>
+    <rect x="118" y="0" width="990" height="100" rx="24" class="amber"/>
+    <text x="152" y="40" class="ink" font-size="27" font-weight="780">Get a backup, then confirm</text>
+    <text x="152" y="72" class="muted" font-size="20">Only apply after handoffs exist or are not needed. Close Codex before changing local state.</text>
+  </g>
+
+  <g transform="translate(84 610)">
+    <circle cx="58" cy="50" r="30" fill="#f0faf4" stroke="#3aa661" stroke-width="2"/>
+    <text x="48" y="61" class="check" font-size="29">4</text>
+    <rect x="118" y="0" width="990" height="100" rx="24" class="green"/>
+    <text x="152" y="40" class="ink" font-size="27" font-weight="780">Archive safely</text>
+    <text x="152" y="72" class="muted" font-size="20">Old sessions, stale worktrees, and large logs move to archives. They are not deleted.</text>
+  </g>
+
+  <g transform="translate(202 760)">
+    <rect class="panel" width="990" height="78" rx="24"/>
+    <text x="34" y="49" class="ink" font-size="24" font-weight="780">Then:</text>
+    <text x="106" y="49" class="muted" font-size="23">start a fresh thread from the handoff. Reminder mode stays report-only.</text>
+  </g>
+</svg>

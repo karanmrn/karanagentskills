@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+# shellcheck source=/Users/steipete/Projects/agent-scripts/skills/release-mac-app/scripts/lib/mac_release.sh
+source "$SCRIPT_DIR/lib/mac_release.sh"
+
+cmd=${1:-status}
+shift || true
+
+case "$cmd" in
+  status)
+    mac_release_status "$@"
+    ;;
+  notes|generate-release-notes)
+    mac_release_load
+    version=${1:-$MARKETING_VERSION}
+    out=${2:-}
+    if [[ -z "$out" ]]; then
+      tmp=$(mktemp "/tmp/${APP_NAME}-notes.XXXXXX")
+      extract_notes_from_changelog "$version" "$tmp"
+      cat "$tmp"
+      rm -f "$tmp"
+    else
+      extract_notes_from_changelog "$version" "$out"
+    fi
+    ;;
+  changelog-html|changelog-to-html)
+    mac_release_changelog_html "$@"
+    ;;
+  make-appcast|appcast)
+    mac_release_make_appcast "$@"
+    ;;
+  verify-appcast)
+    mac_release_verify_appcast "$@"
+    ;;
+  check-assets)
+    mac_release_load
+    check_assets "${1:-$(git describe --tags --abbrev=0)}" "$ARTIFACT_PREFIX"
+    ;;
+  sparkle-key-status)
+    mac_release_sparkle_key_status "$@"
+    ;;
+  codesign-run)
+    mac_release_codesign_run "$@"
+    ;;
+  --public-key)
+    mac_release_load
+    mac_release_public_key_for_source "${1:-keychain}"
+    ;;
+  --expected-public-key)
+    mac_release_expected_public_key
+    ;;
+  release)
+    mac_release_release "$@"
+    ;;
+  *)
+    cat >&2 <<'EOF'
+Usage: mac-release <command>
+
+Commands:
+  status
+  notes [version] [output.md]
+  changelog-html <version> [CHANGELOG.md]
+  make-appcast <zip> [feed-url]
+  verify-appcast [version]
+  check-assets [tag]
+  sparkle-key-status [keychain|/path/to/key]
+  codesign-run [--with-package-secrets] -- <command> [args...]
+  release
+EOF
+    exit 2
+    ;;
+esac

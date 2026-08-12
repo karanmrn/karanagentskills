@@ -1,0 +1,4 @@
+interface:
+  display_name: "Corral Launch Agents"
+  short_description: "Launch Corral agents in isolated worktrees"
+  default_prompt: "Use $corral-launch-agents to launch a Pi agent in a fresh Corral worktree."

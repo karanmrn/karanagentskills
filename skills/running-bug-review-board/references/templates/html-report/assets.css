@@ -1,0 +1,706 @@
+/* assets.css — running-bug-review-board v0.3 HTML report stylesheet
+ *
+ * Design philosophy: Zite + Dieter Rams. Less, but better.
+ *
+ * - Typography does the work, not color. Priority, status, and verdict
+ *   are communicated through size, weight, and position — not through
+ *   coloured chips, pills, or traffic-light palettes.
+ * - One ink colour for body, one quiet accent for links / actions. The
+ *   page is paper.
+ * - Hairline rules and generous whitespace separate sections. Cards
+ *   are deprecated; sections are sections.
+ * - A narrow reading column (~640px) keeps prose comfortable on any
+ *   screen. On desktop the column gains a quiet right rail for
+ *   metadata; on mobile it collapses to a single thumb-friendly
+ *   stack.
+ * - Dark mode is ink-on-near-black, not inverted candy.
+ *
+ * Source: html-report-style-guide.md.
+ */
+
+/* ============================================================
+ * 1. Reset + base
+ * ============================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-rendering: optimizeLegibility; }
+body { margin: 0; }
+img, video { max-width: 100%; height: auto; display: block; }
+table { border-collapse: collapse; width: 100%; }
+button { font: inherit; }
+
+/* ============================================================
+ * 2. Design tokens
+ * ============================================================ */
+:root {
+  /* Colour — almost monochrome by design.
+     Ink is the body text. Paper is the page. Rule is the hairline
+     separator. Mute is the colour of secondary metadata. Accent is the
+     only saturated colour and is reserved for interactive affordances
+     (links, the action button). No traffic-light palette. */
+  --ink:    #1A1A1A;
+  --paper:  #FAFAF7;          /* warm off-white, easier on the eye than #FFF */
+  --rule:   #D8D6D0;          /* hairline + thin underlines */
+  --mute:   #6B6864;          /* secondary text, metadata, captions */
+  --soft:   #F2F0EA;          /* sparingly used surface tint (run rows, evidence frame) */
+  --accent: #A5391A;          /* deep terracotta — links, CTA only */
+  --quote:  #2A2A2A;          /* slightly stronger than ink for pull quotes */
+  --warn-ink: #3A1A0A;        /* ink shift used for priority prefix; not a colour swatch */
+
+  /* Typography — system fonts in a magazine register.
+     Display uses SF Pro Display (or Display Serif for editorial weight
+     if available) for headlines. Text uses SF Pro Text for body. Mono
+     for IDs. Serif fallback (Charter, Georgia) for hosts without SF. */
+  --font-display: ui-sans-serif, -apple-system, "SF Pro Display",
+                  BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial,
+                  sans-serif;
+  --font-text:    ui-sans-serif, -apple-system, "SF Pro Text",
+                  BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial,
+                  sans-serif;
+  --font-serif:   ui-serif, Charter, "Iowan Old Style", "Times New Roman",
+                  Georgia, serif;
+  --font-mono:    ui-monospace, "SF Mono", Menlo, Monaco, "Cascadia Mono",
+                  monospace;
+
+  /* Scale — based on the iOS Large Dynamic Type scale, expanded at the
+     display end. The display sizes carry the magazine character. */
+  --size-display-xl: clamp(40px, 6vw, 64px);   /* verdict word, hero only */
+  --size-display-l:  clamp(28px, 4vw, 40px);   /* article title on bug detail */
+  --size-display-m:  clamp(22px, 3vw, 28px);   /* article title in list */
+  --size-deck:       clamp(18px, 2vw, 21px);   /* deck / impact pull */
+  --size-headline:   17px;                     /* section headings */
+  --size-body:       17px;                     /* prose */
+  --size-meta:       13px;                     /* metadata, footnote */
+  --size-micro:      11px;                     /* uppercase eyebrow */
+
+  --lh-display: 1.05;
+  --lh-deck:    1.35;
+  --lh-body:    1.55;
+  --lh-meta:    1.45;
+
+  /* Rhythm — based on 8 but more generous than v0.2 */
+  --s-1:  4px;
+  --s-2:  8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 64px;
+  --s-9: 96px;
+
+  /* Layout — narrow reading column always; widen only on desktop with
+     a quiet right rail. */
+  --col-read: 640px;
+  --col-rail: 220px;
+  --gutter:   clamp(20px, 4vw, 48px);
+
+  /* Hairlines instead of borders */
+  --rule-w:    1px;
+}
+
+/* ============================================================
+ * 3. Dark mode — ink on near-black, NOT inverted candy
+ * ============================================================ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink:    #ECEAE3;
+    --paper:  #131311;
+    --rule:   #2E2D2A;
+    --mute:   #908C84;
+    --soft:   #1B1B18;
+    --accent: #E08263;          /* lifted terracotta for contrast */
+    --quote:  #F4F2EB;
+    --warn-ink: #F4D9C6;
+  }
+}
+
+/* ============================================================
+ * 4. Body, links, headings
+ * ============================================================ */
+html, body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-text);
+  font-size: var(--size-body);
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+a:hover {
+  border-bottom-color: var(--accent);
+}
+a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0 0 var(--s-3) 0;
+  color: var(--ink);
+}
+
+p { margin: 0 0 var(--s-4) 0; }
+p:last-child { margin-bottom: 0; }
+
+code, pre { font-family: var(--font-mono); font-size: 0.92em; }
+pre {
+  padding: var(--s-4);
+  background: var(--soft);
+  border-left: var(--rule-w) solid var(--rule);
+  overflow-x: auto;
+  line-height: 1.5;
+  margin: 0 0 var(--s-4) 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+
+/* ============================================================
+ * 5. Page chrome — a quiet masthead and a quiet footer
+ * ============================================================ */
+.masthead {
+  border-bottom: var(--rule-w) solid var(--rule);
+  padding: var(--s-5) var(--gutter) var(--s-4);
+}
+.masthead-inner {
+  max-width: var(--col-read);
+  margin: 0 auto;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+}
+.masthead-title {
+  font-family: var(--font-display);
+  font-size: var(--size-headline);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin: 0;
+}
+.masthead-title a { color: var(--ink); border: 0; }
+.masthead-meta {
+  font-size: var(--size-meta);
+  color: var(--mute);
+  margin: 0;
+}
+.masthead-meta a { color: var(--mute); border: 0; }
+.masthead-meta a:hover { color: var(--ink); border: 0; }
+
+.colophon {
+  border-top: var(--rule-w) solid var(--rule);
+  margin-top: var(--s-9);
+  padding: var(--s-5) var(--gutter);
+  text-align: center;
+}
+.colophon p {
+  margin: 0;
+  font-size: var(--size-meta);
+  color: var(--mute);
+  max-width: var(--col-read);
+  margin-inline: auto;
+}
+
+/* ============================================================
+ * 6. Main column — magazine reading width
+ * ============================================================ */
+main { padding: var(--s-7) var(--gutter) var(--s-8); }
+
+.read {
+  max-width: var(--col-read);
+  margin: 0 auto;
+}
+
+@media (min-width: 1024px) {
+  .read.has-rail {
+    display: grid;
+    grid-template-columns: var(--col-read) var(--col-rail);
+    column-gap: var(--s-7);
+    max-width: calc(var(--col-read) + var(--col-rail) + var(--s-7));
+  }
+  .read.has-rail > .read-main { min-width: 0; }
+  .read.has-rail > .read-rail { padding-top: var(--s-6); }
+}
+
+/* ============================================================
+ * 7. Eyebrow + verdict (display type instead of badges)
+ *
+ *   .eyebrow         — small caps line above a headline
+ *   .verdict-word    — the single word YES / NO in display type
+ *   .verdict-line    — the sentence after the verdict
+ * ============================================================ */
+.eyebrow {
+  font-size: var(--size-micro);
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--mute);
+  margin: 0 0 var(--s-3) 0;
+}
+
+.verdict {
+  margin: 0 0 var(--s-7) 0;
+  padding-bottom: var(--s-6);
+  border-bottom: var(--rule-w) solid var(--rule);
+}
+.verdict-word {
+  font-family: var(--font-display);
+  font-size: var(--size-display-xl);
+  font-weight: 700;
+  line-height: var(--lh-display);
+  letter-spacing: -0.03em;
+  margin: 0 0 var(--s-3) 0;
+}
+.verdict-word.is-no::after {
+  content: ".";
+  color: var(--accent);
+}
+.verdict-line {
+  font-family: var(--font-serif);
+  font-size: var(--size-deck);
+  line-height: var(--lh-deck);
+  color: var(--quote);
+  margin: 0 0 var(--s-5) 0;
+  max-width: 32em;
+}
+.verdict-action {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-family: var(--font-text);
+  font-size: var(--size-body);
+  font-weight: 600;
+  color: var(--ink);
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 2px;
+}
+.verdict-action::after { content: "→"; color: var(--accent); }
+.verdict-action:hover { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ============================================================
+ * 8. Section title — magazine column header
+ * ============================================================ */
+.section-title {
+  font-family: var(--font-display);
+  font-size: var(--size-deck);
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  margin: var(--s-8) 0 var(--s-4) 0;
+  padding-bottom: var(--s-2);
+  border-bottom: var(--rule-w) solid var(--rule);
+}
+.section-title.is-quiet {
+  font-weight: 500;
+  font-size: var(--size-headline);
+  color: var(--mute);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ============================================================
+ * 9. Bug list (dashboard) — articles, not cards.
+ *
+ *   <ol class="bug-list">
+ *     <li class="bug-list-item">
+ *       <a class="bug-list-link">
+ *         <p class="bug-list-meta">P0 · Phase 2 · Open · LIN-1244</p>
+ *         <h3 class="bug-list-title">…title…</h3>
+ *         <p class="bug-list-impact">…one-sentence impact / deck…</p>
+ *       </a>
+ *     </li>
+ *   </ol>
+ * ============================================================ */
+.bug-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.bug-list-item {
+  padding: var(--s-5) 0;
+  border-bottom: var(--rule-w) solid var(--rule);
+}
+.bug-list-item:last-child { border-bottom: 0; }
+.bug-list-link {
+  display: block;
+  color: var(--ink);
+  border: 0;
+}
+.bug-list-link:hover { border: 0; }
+.bug-list-link:hover .bug-list-title { text-decoration: underline; text-decoration-color: var(--rule); text-underline-offset: 4px; }
+
+.bug-list-meta {
+  font-size: var(--size-micro);
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--mute);
+  margin: 0 0 var(--s-2) 0;
+}
+.bug-list-meta .pri {
+  color: var(--warn-ink);
+  font-weight: 700;
+}
+.bug-list-meta .sep {
+  color: var(--rule);
+  margin: 0 0.5em;
+}
+
+.bug-list-title {
+  font-family: var(--font-display);
+  font-size: var(--size-display-m);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+  margin: 0 0 var(--s-2) 0;
+  color: var(--ink);
+}
+.bug-list-impact {
+  font-family: var(--font-serif);
+  font-size: var(--size-deck);
+  line-height: var(--lh-deck);
+  color: var(--quote);
+  margin: 0;
+  max-width: 40em;
+}
+
+/* Priority groups in the list — a small caps divider, no Kanban */
+.bug-group-head {
+  font-family: var(--font-text);
+  font-size: var(--size-micro);
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--mute);
+  margin: var(--s-7) 0 var(--s-3) 0;
+  padding-bottom: var(--s-2);
+  border-bottom: var(--rule-w) solid var(--ink);
+}
+.bug-group-head .count { color: var(--mute); font-weight: 500; }
+
+/* ============================================================
+ * 10. Bug detail — an article
+ * ============================================================ */
+.article-header { margin-bottom: var(--s-6); }
+.article-title {
+  font-family: var(--font-display);
+  font-size: var(--size-display-l);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 0 0 var(--s-3) 0;
+}
+.article-deck {
+  font-family: var(--font-serif);
+  font-size: var(--size-deck);
+  line-height: var(--lh-deck);
+  color: var(--quote);
+  margin: 0 0 var(--s-5) 0;
+  max-width: 32em;
+}
+
+.article-section { margin: var(--s-6) 0; }
+.article-section h2 {
+  font-family: var(--font-text);
+  font-size: var(--size-micro);
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--mute);
+  margin: 0 0 var(--s-3) 0;
+}
+
+/* Impact — set as a pull-quote without quote marks */
+.article-impact {
+  margin: var(--s-7) 0;
+  padding: var(--s-5) 0 var(--s-5) var(--s-5);
+  border-left: 2px solid var(--ink);
+}
+.article-impact p {
+  font-family: var(--font-serif);
+  font-size: var(--size-deck);
+  line-height: var(--lh-deck);
+  color: var(--quote);
+  margin: 0;
+  max-width: 32em;
+}
+.article-impact .eyebrow { margin-bottom: var(--s-2); }
+
+/* Risk-to-fix — a quiet engineer's marginal note */
+.article-risk {
+  margin: var(--s-6) 0;
+  padding: var(--s-4);
+  background: var(--soft);
+  border-left: 2px solid var(--rule);
+}
+.article-risk .eyebrow { margin-bottom: var(--s-2); }
+.article-risk p { margin: 0; color: var(--ink); }
+.article-risk.is-empty { display: none; }
+
+/* Actual / Expected — two short paragraphs */
+.article-expectation { margin: var(--s-6) 0; }
+.article-expectation dl { margin: 0; }
+.article-expectation dt {
+  font-size: var(--size-micro);
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--mute);
+  margin: 0 0 var(--s-2) 0;
+}
+.article-expectation dd { margin: 0 0 var(--s-5) 0; }
+
+/* Steps to reproduce */
+.article-steps ol {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+  counter-reset: step;
+}
+.article-steps li {
+  position: relative;
+  padding: 0 0 var(--s-3) calc(var(--s-6) + var(--s-1));
+  counter-increment: step;
+}
+.article-steps li::before {
+  content: counter(step, decimal-leading-zero);
+  position: absolute;
+  left: 0;
+  top: 0.1em;
+  font-family: var(--font-mono);
+  font-size: var(--size-meta);
+  color: var(--mute);
+  letter-spacing: 0.05em;
+}
+
+/* Evidence — minimal frame, never a button-styled gallery */
+.article-evidence-block { margin: var(--s-5) 0; }
+.article-evidence-block h3 {
+  font-family: var(--font-text);
+  font-size: var(--size-micro);
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--mute);
+  margin: 0 0 var(--s-2) 0;
+}
+.article-evidence-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--s-3);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.article-evidence-gallery a {
+  display: block;
+  border: 0;
+}
+.article-evidence-gallery img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  background: var(--soft);
+  border: var(--rule-w) solid var(--rule);
+}
+.article-evidence-gallery figcaption {
+  font-family: var(--font-mono);
+  font-size: var(--size-micro);
+  color: var(--mute);
+  margin: var(--s-1) 0 0 0;
+}
+
+/* Triage log */
+.article-triage table {
+  margin: 0;
+}
+.article-triage th,
+.article-triage td {
+  text-align: left;
+  vertical-align: top;
+  padding: var(--s-2) var(--s-4) var(--s-2) 0;
+  border-bottom: var(--rule-w) solid var(--rule);
+  font-size: var(--size-meta);
+  line-height: var(--lh-meta);
+}
+.article-triage th {
+  font-weight: 600;
+  font-size: var(--size-micro);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+.article-triage td:first-child {
+  font-family: var(--font-mono);
+  color: var(--mute);
+  white-space: nowrap;
+}
+
+/* ============================================================
+ * 11. Right rail (desktop only) — quiet metadata
+ * ============================================================ */
+.rail-block {
+  margin-bottom: var(--s-5);
+  padding-bottom: var(--s-4);
+  border-bottom: var(--rule-w) solid var(--rule);
+}
+.rail-block:last-child { border-bottom: 0; }
+.rail-block dt {
+  font-size: var(--size-micro);
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--mute);
+  margin: 0 0 var(--s-1) 0;
+}
+.rail-block dd {
+  margin: 0;
+  font-size: var(--size-meta);
+  line-height: var(--lh-meta);
+}
+.rail-block dd code {
+  font-size: var(--size-meta);
+  color: var(--ink);
+}
+
+/* ============================================================
+ * 12. Recent runs — a quiet list, not a Kanban
+ * ============================================================ */
+.runs-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.runs-list-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--s-3);
+  align-items: baseline;
+  padding: var(--s-3) 0;
+  border-bottom: var(--rule-w) solid var(--rule);
+}
+.runs-list-item:last-child { border-bottom: 0; }
+.runs-list-when {
+  font-size: var(--size-meta);
+  color: var(--mute);
+  letter-spacing: 0.04em;
+}
+.runs-list-link {
+  font-family: var(--font-text);
+  font-size: var(--size-body);
+  color: var(--ink);
+  border-bottom: 1px dotted var(--rule);
+}
+.runs-list-link:hover { border-bottom-color: var(--ink); color: var(--ink); }
+.runs-list-counts {
+  font-family: var(--font-mono);
+  font-size: var(--size-meta);
+  color: var(--mute);
+  letter-spacing: 0.04em;
+}
+.runs-list-counts .v-yes { color: var(--ink); font-weight: 600; }
+.runs-list-counts .v-no  { color: var(--accent); font-weight: 600; }
+
+/* ============================================================
+ * 13. Filter bar — quiet text affordances, no buttons
+ *
+ *   <nav class="filter-bar">
+ *     <details class="filter">
+ *       <summary>Priority</summary>
+ *       <label><input type=checkbox …> P0</label>
+ *       …
+ *     </details>
+ *   </nav>
+ * ============================================================ */
+.filter-bar {
+  display: flex;
+  gap: var(--s-5);
+  flex-wrap: wrap;
+  margin: 0 0 var(--s-5) 0;
+  padding: var(--s-3) 0;
+  border-top: var(--rule-w) solid var(--rule);
+  border-bottom: var(--rule-w) solid var(--rule);
+}
+.filter { font-size: var(--size-meta); }
+.filter summary {
+  cursor: pointer;
+  list-style: none;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  user-select: none;
+}
+.filter summary::-webkit-details-marker { display: none; }
+.filter[open] summary { color: var(--accent); }
+.filter[open] {
+  padding: var(--s-2) 0 0 0;
+}
+.filter label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  margin-right: var(--s-4);
+  margin-top: var(--s-2);
+  color: var(--ink);
+}
+.filter input[type=checkbox] {
+  accent-color: var(--ink);
+}
+
+/* ============================================================
+ * 14. Thumb zone — mobile-first action shelf
+ *
+ *   On phones the verdict CTA is duplicated at the bottom of the
+ *   viewport so the thumb can reach it without scrolling back up.
+ *   Hidden on tablet+.
+ * ============================================================ */
+.thumb-zone {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: var(--s-3) var(--gutter);
+  background: var(--paper);
+  border-top: var(--rule-w) solid var(--rule);
+  display: flex;
+  justify-content: center;
+  z-index: 10;
+}
+.thumb-zone a {
+  font-family: var(--font-text);
+  font-weight: 600;
+  border-bottom: 2px solid var(--accent);
+  color: var(--ink);
+}
+@media (min-width: 768px) {
+  .thumb-zone { display: none; }
+}
+
+/* ============================================================
+ * 15. Print — magazine printable
+ * ============================================================ */
+@media print {
+  :root {
+    --paper: #FFFFFF;
+    --ink:   #000000;
+    --rule:  #888888;
+    --mute:  #555555;
+    --soft:  #F5F5F5;
+    --accent: #000000;
+  }
+  .masthead, .colophon, .filter-bar, .thumb-zone, .verdict-action { display: none; }
+  a { border-bottom: 0; }
+  .bug-list-item { page-break-inside: avoid; }
+  .article-section { page-break-inside: avoid; }
+}

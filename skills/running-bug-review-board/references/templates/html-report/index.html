@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#FAFAF7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#131311" media="(prefers-color-scheme: dark)">
+  <title>{{TITLE}}</title>
+  <link rel="stylesheet" href="assets.css">
+  <!-- skill:running-bug-review-board v0.3 -->
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="masthead-inner">
+      <h1 class="masthead-title"><a href="./">{{TITLE}}</a></h1>
+      <p class="masthead-meta">
+        <time datetime="{{GENERATED_ISO}}">{{GENERATED_HUMAN}}</time>
+        · <a href="../">qa/</a>
+      </p>
+    </div>
+  </header>
+
+  <main>
+    <section class="read">
+
+      <!-- ============================================================
+        Verdict — display type, no badge. The colon-period after NO is
+        the only red on the page; a quiet refusal, not an alarm.
+      ============================================================ -->
+      <article class="verdict">
+        <p class="eyebrow">Phase {{PHASE_N}} — {{PHASE_SLUG}}</p>
+        <h2 class="verdict-word {{VERDICT_CLASS}}">{{VERDICT_WORD}}</h2>
+        <p class="verdict-line">{{VERDICT_HEADLINE}}</p>
+        <a class="verdict-action" href="runs/{{MERGE_SLUG}}.html">Read the merge</a>
+      </article>
+
+      <!-- ============================================================
+        Filter — quiet text affordances. Hidden by default; opens on tap.
+      ============================================================ -->
+      <nav class="filter-bar" aria-label="Filter">
+        <details class="filter">
+          <summary>Priority</summary>
+          <label><input type="checkbox" data-filter="priority" value="P0" checked> P0</label>
+          <label><input type="checkbox" data-filter="priority" value="P1" checked> P1</label>
+          <label><input type="checkbox" data-filter="priority" value="P2" checked> P2</label>
+        </details>
+        <details class="filter">
+          <summary>Status</summary>
+          <label><input type="checkbox" data-filter="status" value="open" checked> Open</label>
+          <label><input type="checkbox" data-filter="status" value="in-progress" checked> In progress</label>
+          <label><input type="checkbox" data-filter="status" value="fixed" checked> Fixed</label>
+          <label><input type="checkbox" data-filter="status" value="verified"> Verified</label>
+          <label><input type="checkbox" data-filter="status" value="deferred"> Deferred</label>
+          <label><input type="checkbox" data-filter="status" value="duplicate"> Duplicate</label>
+          <label><input type="checkbox" data-filter="status" value="wontfix"> Won't fix</label>
+        </details>
+        <details class="filter">
+          <summary>Phase</summary>
+          {{PHASE_FILTER_CHECKBOXES}}
+        </details>
+      </nav>
+
+      <!-- ============================================================
+        Open issues — a single magazine list, ordered P0 -> P1 -> P2.
+        No Kanban columns. Each item is an article preview:
+            P0 · Phase 2 · Open · LIN-1244       (eyebrow)
+            Stale invite poisons fresh-user signup  (title, display)
+            "If a user opened an invite link, abandoned it,
+             then returned later and signed up without one,
+             they're silently joined to the old group."   (impact deck)
+      ============================================================ -->
+      <h3 class="bug-group-head">P0 <span class="count">— {{OPEN_P0_COUNT}} open</span></h3>
+      <ol class="bug-list" data-priority-group="P0">
+        {{P0_BUG_ITEMS}}
+      </ol>
+
+      <h3 class="bug-group-head">P1 <span class="count">— {{OPEN_P1_COUNT}} open</span></h3>
+      <ol class="bug-list" data-priority-group="P1">
+        {{P1_BUG_ITEMS}}
+      </ol>
+
+      <h3 class="bug-group-head">P2 <span class="count">— {{OPEN_P2_COUNT}} open</span></h3>
+      <ol class="bug-list" data-priority-group="P2">
+        {{P2_BUG_ITEMS}}
+      </ol>
+
+      <!-- ============================================================
+        Recent runs — a quiet list, never a table of badges.
+      ============================================================ -->
+      <h3 class="section-title is-quiet">Recent runs</h3>
+      <ol class="runs-list">
+        {{RUN_ROWS}}
+        <!-- Each row:
+        <li class="runs-list-item">
+          <a class="runs-list-link" href="runs/{slug}.html">
+            <span class="runs-list-when"><time datetime="{ISO}">{DATE}</time> · Phase {N}</span>
+            <span>… run headline …</span>
+          </a>
+          <span class="runs-list-counts">
+            <span class="v-{yes|no}">{YES|NO}</span> · {P0_COUNT}/{P1_COUNT}/{P2_COUNT}
+          </span>
+        </li>
+        -->
+      </ol>
+
+      <!-- ============================================================
+        Full index — text-only roll. Useful for ctrl-F / scroll past
+        the open issues to see every bug.
+      ============================================================ -->
+      <h3 class="section-title is-quiet">Every bug</h3>
+      <ol class="bug-list" data-section="all">
+        {{ALL_BUG_ITEMS}}
+      </ol>
+
+    </section>
+  </main>
+
+  <!-- ============================================================
+    Thumb-zone — mobile-only sticky action bar at the bottom of the
+    viewport so a thumb can open the merge without scrolling up.
+    Auto-hides at 768px+.
+  ============================================================ -->
+  <nav class="thumb-zone" aria-label="Mobile actions">
+    <a href="runs/{{MERGE_SLUG}}.html">Read the merge →</a>
+  </nav>
+
+  <footer class="colophon">
+    <p>
+      Generated <time datetime="{{GENERATED_ISO}}">{{GENERATED_HUMAN}}</time>
+      by the <code>running-bug-review-board</code> skill v0.3.
+      Edit the markdown in <a href="../bug-reports/">bug-reports/</a>
+      and regenerate.
+    </p>
+  </footer>
+
+  <script>
+    // Vanilla-JS filter — toggles [hidden] on .bug-list-item based on
+    // data-priority / data-status / data-phase. No frameworks, no animation.
+    (function () {
+      var filters = document.querySelectorAll('[data-filter]');
+      function apply() {
+        var active = {};
+        filters.forEach(function (input) {
+          var key = input.dataset.filter;
+          active[key] = active[key] || new Set();
+          if (input.checked) active[key].add(input.value);
+        });
+        document.querySelectorAll('.bug-list-item').forEach(function (el) {
+          var ok = true;
+          ['priority', 'status', 'phase'].forEach(function (key) {
+            var val = el.dataset[key];
+            if (val && active[key] && active[key].size > 0 && !active[key].has(val)) {
+              ok = false;
+            }
+          });
+          el.hidden = !ok;
+        });
+      }
+      filters.forEach(function (input) { input.addEventListener('change', apply); });
+      apply();
+    })();
+  </script>
+</body>
+</html>

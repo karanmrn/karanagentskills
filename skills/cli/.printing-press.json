@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-04-01T00:00:00Z",
+  "printing_press_version": "test",
+  "api_name": "fixture",
+  "cli_name": "fixture-pp-cli"
+}

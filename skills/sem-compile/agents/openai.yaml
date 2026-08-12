@@ -1,0 +1,4 @@
+interface:
+  display_name: "Sem Compile"
+  short_description: "Compile requests into squishy Sem programs"
+  default_prompt: "Use $sem-compile to turn this request or sketch into a Sem program and compile notes without running it."

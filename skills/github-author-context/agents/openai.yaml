@@ -1,0 +1,4 @@
+interface:
+  display_name: "GitHub Author Context"
+  short_description: "Profile PR authors by identity, activity, and maintainer signal"
+  default_prompt: "Use $github-author-context to identify this GitHub user, summarize their repo activity, and surface maintainer trust or review-load signals."

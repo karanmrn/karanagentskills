@@ -1,0 +1,5 @@
+# swift/
+SyntaxFixture ty:stringify[public],Box[public],extension:Box[public],Marker[public] c:globalValue[public] fn:![public]
+
+# swift/visibility/
+Visibility ty:Widget[public],Renderer[public],DocumentedAPI[public] cl:Base[open] c:counter[public]

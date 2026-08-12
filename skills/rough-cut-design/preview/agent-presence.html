@@ -1,0 +1,42 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="_preview.css"></head>
+<body>
+<style>
+  .dock {
+    background: var(--canvas-2); border: 1px solid var(--line); border-radius: 4px;
+    padding: 14px 16px; display: flex; flex-direction: column; gap: 10px;
+    font-family: var(--font-mono);
+  }
+  .presence { display: flex; align-items: center; gap: 8px; }
+  .dot { width: 8px; height: 8px; border-radius: 999px; background: var(--ink-3); }
+  .dot.listening { background: var(--ultramarine); box-shadow: 0 0 0 3px var(--ultramarine-wash); }
+  .dot.working   { background: var(--vermillion); }
+  .dot.waiting   { background: var(--ink-4); }
+  .agent-name { font-size: 12px; color: var(--ink); font-weight: 500; letter-spacing: 0.04em; }
+  .agent-state { font-size: 11px; color: var(--ink-3); }
+  .msg {
+    font-family: var(--font-body); font-size: 14px; line-height: 1.55; color: var(--ink);
+    padding-left: 10px; border-left: 2px solid var(--ultramarine);
+  }
+  .msg .by { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ultramarine); display: block; margin-bottom: 4px; }
+</style>
+<div class="card" style="padding: 22px 24px;">
+  <p class="eyebrow">Agent presence · States</p>
+  <div style="margin-top: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+    <div class="dock">
+      <div class="presence"><span class="dot listening"></span><span class="agent-name">agent</span><span class="agent-state">· listening</span></div>
+      <div class="msg">
+        <span class="by">↳ agent</span>
+        Polled. Snapshot is fresh. Waiting for a prompt.
+      </div>
+    </div>
+    <div class="dock">
+      <div class="presence"><span class="dot working"></span><span class="agent-name">agent</span><span class="agent-state">· applying 4 edits</span></div>
+      <div class="msg">
+        <span class="by">↳ agent</span>
+        Struck <em style="font-style: italic;">"um, you know"</em> at 00:14.2. Trimming passage_3 to end at the next sentence break.
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>
