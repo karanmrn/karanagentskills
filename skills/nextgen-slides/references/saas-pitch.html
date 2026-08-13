@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ledgerly — Series A Pitch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #05060f; }
+
+  :root {
+    --bg:  #0e1130;
+    --bg2: #0a0b22;
+    --ink: #f0f2ff;
+    --muted: #a9aed2;
+    --dim: #6f74a0;
+    --line: rgba(255,255,255,.11);
+    --a1: #6a8dff;
+    --a2: #a679ff;
+    --grad: linear-gradient(100deg, #6a8dff, #a679ff);
+    --disp: 'Space Grotesk', system-ui, sans-serif;
+    --body: 'Sora', system-ui, sans-serif;
+  }
+
+  .viewport { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+  .stage {
+    position: relative; width: 1920px; height: 1080px; flex: none; overflow: hidden;
+    container-type: size; transform: scale(var(--vizscale, 1)); transform-origin: center center;
+    background:
+      radial-gradient(1500px 900px at 88% -20%, rgba(166,121,255,.20), transparent 55%),
+      radial-gradient(1300px 800px at -10% 120%, rgba(106,141,255,.16), transparent 55%),
+      linear-gradient(165deg, var(--bg) 0%, var(--bg2) 100%);
+    color: var(--ink);
+    font-family: var(--body);
+  }
+
+  .slide {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .5s ease;
+    display: flex; flex-direction: column; justify-content: center;
+    /* generous, editorial margins — the whole point of the redesign */
+    padding: 15cqh 12cqw;
+  }
+  .slide.active { opacity: 1; visibility: visible; pointer-events: auto; }
+
+  /* restrained entrance */
+  .slide.active .anim { animation: rise .7s cubic-bezier(.2,.7,.2,1) both; }
+  .d1{animation-delay:.09s} .d2{animation-delay:.18s} .d3{animation-delay:.27s} .d4{animation-delay:.36s}
+  @keyframes rise { from { opacity:0; transform: translateY(2cqh); } to { opacity:1; transform:none; } }
+  @media (prefers-reduced-motion: reduce){ .slide.active .anim{ animation:none!important } }
+
+  /* ---- shared type ---- */
+  .eyebrow { font-family: var(--disp); font-weight:600; letter-spacing:.34em; text-transform:uppercase;
+    font-size: 1cqw; color: var(--a2); }
+  h1, h2 { font-family: var(--disp); font-weight:600; letter-spacing:-.02em; line-height:1.04; }
+  .section-h { font-size: 4cqw; margin-top: 2.4cqh; max-width: 20ch; }
+  .lead { color: var(--muted); font-weight:300; font-size: 1.4cqw; line-height:1.55; max-width: 58ch; }
+  .gt { background: var(--grad); -webkit-background-clip:text; background-clip:text; color:transparent; }
+
+  .counter { position:absolute; right:12cqw; bottom:5.4cqh; font-family:var(--disp); font-weight:500;
+    font-size:.9cqw; color:var(--dim); letter-spacing:.14em; z-index:5; }
+  .foot { position:absolute; left:12cqw; bottom:5.4cqh; font-family:var(--disp); font-weight:500;
+    font-size:.9cqw; color:var(--dim); letter-spacing:.14em; }
+
+  /* ---- 1 · TITLE ---- */
+  .logo { position:absolute; top:8.5cqh; left:12cqw; display:flex; align-items:center; gap:1.1cqw;
+    font-family:var(--disp); font-weight:600; font-size:1.9cqw; letter-spacing:-.01em; }
+  .mark { width:2.7cqw; height:2.7cqw; border-radius:.8cqw; background:var(--grad); display:grid; place-items:center; }
+  .mark svg{ width:58%; height:58%; }
+  .title-eyebrow { margin-bottom: 3.4cqh; }
+  .title h1 { font-size: 7.2cqw; font-weight:700; max-width: 15ch; }
+  .title .tag { margin-top: 3.6cqh; font-size: 1.7cqw; color:var(--muted); font-weight:300;
+    max-width: 40ch; line-height:1.5; }
+  .title-meta { position:absolute; left:12cqw; bottom:9.5cqh; display:flex; gap:2.4cqw;
+    font-family:var(--disp); font-size:1cqw; letter-spacing:.06em; color:var(--dim); }
+  .title-meta span { display:flex; align-items:center; gap:.7cqw; }
+  .title-meta i { width:.55cqw; height:.55cqw; border-radius:50%; background:var(--a1); font-style:normal; }
+
+  /* ---- 2 · PROBLEM ---- */
+  .split { display:grid; grid-template-columns: 1fr .8fr; gap: 8cqw; align-items:center; }
+  .stat-lg .n { font-family:var(--disp); font-weight:700; font-size: 11cqw; line-height:.9; letter-spacing:-.03em; }
+  .stat-lg .cap { color:var(--muted); font-weight:300; font-size:1.25cqw; margin-top:2.2cqh; max-width:24ch; line-height:1.5; }
+
+  /* ---- 3 · SOLUTION · steps ---- */
+  .steps { display:grid; grid-template-columns: repeat(3,1fr); gap: 5cqw; margin-top: 6cqh; }
+  .step { border-top:1px solid var(--line); padding-top:2.4cqh; }
+  .step .k { font-family:var(--disp); font-weight:600; font-size:1cqw; letter-spacing:.2em; color:var(--a1); text-transform:uppercase; }
+  .step h3 { font-family:var(--disp); font-weight:600; font-size:2cqw; margin:1.6cqh 0 1.2cqh; }
+  .step p { color:var(--muted); font-weight:300; font-size:1.08cqw; line-height:1.55; }
+
+  /* ---- 4 · MARKET ---- */
+  .figs { display:grid; grid-template-columns: repeat(3,1fr); gap:5cqw; margin-top:6cqh; }
+  .fig { border-top:1px solid var(--line); padding-top:2.6cqh; }
+  .fig .v { font-family:var(--disp); font-weight:700; font-size:5.4cqw; line-height:.9; letter-spacing:-.02em; }
+  .fig .t { font-family:var(--disp); font-weight:600; font-size:1cqw; letter-spacing:.22em; text-transform:uppercase; color:var(--a2); margin-top:1.6cqh; }
+  .fig p { color:var(--muted); font-weight:300; font-size:1.05cqw; line-height:1.5; margin-top:1cqh; max-width:22ch; }
+
+  /* ---- 5 · TRACTION ---- */
+  .kpis { display:grid; grid-template-columns: repeat(4,1fr); gap:4cqw; margin-top:6cqh; }
+  .kpi { border-top:1px solid var(--line); padding-top:2.4cqh; }
+  .kpi .v { font-family:var(--disp); font-weight:700; font-size:4.4cqw; line-height:.9; letter-spacing:-.02em; }
+  .kpi .v small { font-size:2.4cqw; font-weight:600; }
+  .kpi .l { font-family:var(--disp); font-weight:500; font-size:1cqw; color:var(--ink); margin-top:1.6cqh; }
+  .kpi .s { font-size:.92cqw; color:var(--muted); font-weight:300; margin-top:.7cqh; }
+  .logos { display:flex; align-items:center; gap:2.8cqw; margin-top:6.5cqh; color:var(--dim); }
+  .logos b { font-family:var(--disp); font-weight:500; font-size:1cqw; letter-spacing:.04em; color:var(--dim); }
+  .logos span { font-family:var(--disp); font-weight:600; font-size:1.35cqw; color:var(--muted); letter-spacing:-.01em; }
+
+  /* ---- 6 · QUOTE ---- */
+  .quote { max-width: 62cqw; }
+  .quote blockquote { font-family:var(--disp); font-weight:400; font-size:2.9cqw; line-height:1.32; letter-spacing:-.01em; }
+  .quote .attr { display:flex; align-items:center; gap:1.5cqw; margin-top:4.5cqh; }
+  .avatar { width:4.6cqw; height:4.6cqw; border-radius:50%; background:var(--grad); display:grid; place-items:center;
+    font-family:var(--disp); font-weight:600; font-size:1.6cqw; color:#fff; }
+  .quote .who b { font-family:var(--disp); font-weight:600; font-size:1.35cqw; display:block; }
+  .quote .who span { color:var(--muted); font-size:1.05cqw; font-weight:300; }
+
+  /* ---- 7 · ASK ---- */
+  .ask { align-items:flex-start; }
+  .ask .amount { font-family:var(--disp); font-weight:700; font-size:10cqw; line-height:.92; letter-spacing:-.03em; margin:2.4cqh 0 3.4cqh; }
+  .ask .lead { max-width:50ch; }
+  .use { display:grid; grid-template-columns: repeat(3, minmax(0,15cqw)); gap:5cqw; margin-top:7cqh; }
+  .use .u { border-top:1px solid var(--line); padding-top:2cqh; }
+  .use .u .p { font-family:var(--disp); font-weight:700; font-size:2.6cqw; }
+  .use .u .t { color:var(--muted); font-size:1cqw; font-weight:300; margin-top:1cqh; }
+  .contact { position:absolute; right:12cqw; bottom:9.5cqh; font-family:var(--disp); font-weight:600;
+    font-size:1.15cqw; color:var(--ink); }
+  .contact span { color:var(--a2); }
+</style>
+</head>
+<body>
+<div class="viewport"><div class="stage">
+
+  <!-- 1 · TITLE -->
+  <section class="slide active title">
+    <div class="logo anim">
+      <span class="mark"><svg viewBox="0 0 24 24" fill="none"><path d="M4 18V7M9 18v-5M14 18v-9M19 18V4" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg></span>
+      Ledgerly
+    </div>
+    <div class="eyebrow title-eyebrow anim">Series A · 2026</div>
+    <h1 class="anim d1">Accounting on <span class="gt">autopilot</span> for small business.</h1>
+    <p class="tag anim d2">An AI bookkeeper that closes the books in real time — so founders never touch a spreadsheet again.</p>
+    <div class="title-meta anim d3">
+      <span><i></i> Agentic ledger</span>
+      <span><i></i> Real-time close</span>
+      <span><i></i> SOC 2 Type II</span>
+    </div>
+  </section>
+
+  <!-- 2 · PROBLEM -->
+  <section class="slide">
+    <div class="split">
+      <div>
+        <div class="eyebrow anim">The problem</div>
+        <h2 class="section-h anim d1">Small-business books are still broken.</h2>
+        <p class="lead anim d2" style="margin-top:3cqh">The average SMB closes its books 24 days after month-end and burns a fortune doing it — decisions get made on stale, hand-keyed numbers.</p>
+      </div>
+      <div class="stat-lg anim d2">
+        <div class="n"><span class="gt">21</span> hrs</div>
+        <div class="cap">lost every month by the typical owner to manual bookkeeping and reconciliation.</div>
+      </div>
+    </div>
+    <div class="foot">The problem</div>
+  </section>
+
+  <!-- 3 · SOLUTION -->
+  <section class="slide">
+    <div class="eyebrow anim">The solution</div>
+    <h2 class="section-h anim d1" style="max-width:24ch">A ledger that <span class="gt">closes itself</span>.</h2>
+    <div class="steps">
+      <div class="step anim d1">
+        <div class="k">01 — Connect</div>
+        <h3>Link everything once</h3>
+        <p>One-click connections to 12,000+ banks, Stripe, Gusto and Shopify. Receipts stream in automatically.</p>
+      </div>
+      <div class="step anim d2">
+        <div class="k">02 — Automate</div>
+        <h3>Agents do the work</h3>
+        <p>Ledgerly categorizes, reconciles and flags anomalies in real time, learning your chart of accounts as it goes.</p>
+      </div>
+      <div class="step anim d3">
+        <div class="k">03 — Close &amp; file</div>
+        <h3>Always audit-ready</h3>
+        <p>Books close continuously. Generate GAAP statements, sales tax and 1099s in a click — reviewed, not rebuilt.</p>
+      </div>
+    </div>
+    <div class="foot">The solution</div>
+  </section>
+
+  <!-- 4 · MARKET -->
+  <section class="slide">
+    <div class="eyebrow anim">Market</div>
+    <h2 class="section-h anim d1" style="max-width:26ch">A wedge into a market measured in tens of billions.</h2>
+    <div class="figs">
+      <div class="fig anim d1"><div class="v">$74B</div><div class="t">Total market</div><p>Global SMB accounting, bookkeeping &amp; tax software spend.</p></div>
+      <div class="fig anim d2"><div class="v">$22B</div><div class="t">Serviceable</div><p>33M US &amp; UK small businesses seeking automated finance ops.</p></div>
+      <div class="fig anim d3"><div class="v gt">$1.8B</div><div class="t">Obtainable · 5yr</div><p>~600k target accounts at our current ACV and win rate.</p></div>
+    </div>
+    <div class="foot">Market size</div>
+  </section>
+
+  <!-- 5 · TRACTION -->
+  <section class="slide">
+    <div class="eyebrow anim">Traction</div>
+    <h2 class="section-h anim d1">Growth that compounds every month.</h2>
+    <div class="kpis">
+      <div class="kpi anim d1"><div class="v gt">$6.4M</div><div class="l">Annual recurring revenue</div><div class="s">from $1.1M a year ago</div></div>
+      <div class="kpi anim d2"><div class="v">18<small>%</small></div><div class="l">MoM net revenue growth</div><div class="s">14 months consecutive</div></div>
+      <div class="kpi anim d3"><div class="v">4,200<small>+</small></div><div class="l">Paying SMB customers</div><div class="s">61 net-new / week</div></div>
+      <div class="kpi anim d4"><div class="v gt">128<small>%</small></div><div class="l">Net revenue retention</div><div class="s">2.1% logo churn / yr</div></div>
+    </div>
+    <div class="logos anim d4">
+      <b>Trusted by teams at</b>
+      <span>Brightpath</span><span>Verano</span><span>Kettle&amp;Co</span><span>Northwind</span><span>Palette</span>
+    </div>
+    <div class="foot">Traction</div>
+  </section>
+
+  <!-- 6 · QUOTE -->
+  <section class="slide">
+    <div class="quote">
+      <blockquote class="anim d1">“Ledgerly gave us a controller for the price of a SaaS seat. Our monthly close went from three weeks to <span class="gt">the same afternoon</span>.”</blockquote>
+      <div class="attr anim d2">
+        <div class="avatar">DR</div>
+        <div class="who"><b>Dana Reyes</b><span>Founder &amp; CEO, Kettle&amp;Co · 42 employees</span></div>
+      </div>
+    </div>
+    <div class="foot">Customer voice</div>
+  </section>
+
+  <!-- 7 · THE ASK -->
+  <section class="slide ask">
+    <div class="eyebrow anim">The ask</div>
+    <div class="amount anim d1"><span class="gt">$8M</span> Series A</div>
+    <p class="lead anim d2">To scale go-to-market, deepen our agent platform, and reach $20M ARR within 24 months — the default financial operating system for every small business.</p>
+    <div class="use">
+      <div class="u anim d2"><div class="p">45%</div><div class="t">Engineering &amp; AI agents</div></div>
+      <div class="u anim d3"><div class="p">35%</div><div class="t">Go-to-market &amp; sales</div></div>
+      <div class="u anim d4"><div class="p">20%</div><div class="t">Compliance &amp; ops</div></div>
+    </div>
+    <div class="contact anim d4">Let's talk — <span>founders@ledgerly.ai</span></div>
+    <div class="foot">The ask</div>
+  </section>
+
+  <div class="counter" id="counter"></div>
+</div></div>
+
+<script>
+  const stageEl = document.querySelector('.stage');
+  function fitStage(){ const s = Math.min(innerWidth/1920, innerHeight/1080); if(stageEl) stageEl.style.setProperty('--vizscale', s); }
+  addEventListener('resize', fitStage); fitStage();
+  let cur = 0;
+  const slides = () => Array.from(document.querySelectorAll('.slide'));
+  const counter = document.getElementById('counter');
+  function render() {
+    const all = slides();
+    all.forEach((s, n) => s.classList.toggle('active', n === cur));
+    if (counter) counter.textContent = (cur + 1) + ' / ' + all.length;
+  }
+  window.goToSlide = function (i) {
+    const all = slides();
+    cur = Math.max(0, Math.min(i, all.length - 1));
+    render();
+  };
+  addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') goToSlide(cur + 1);
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') goToSlide(cur - 1);
+  });
+  const init = slides().findIndex((s) => s.classList.contains('active'));
+  cur = init < 0 ? 0 : init;
+  render();
+</script>
+</body>
+</html>

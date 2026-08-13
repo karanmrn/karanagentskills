@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rewilding Your Backyard — Gardening for Biodiversity</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..600&family=Work+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #0c1811; }
+
+  :root{
+    --bg: #14261c;
+    --bg2: #0e1c14;
+    --ink: #f2ede0;
+    --sage: #a7bfa2;
+    --sage-dim: #7f9a7d;
+    --ochre: #d99a4e;
+    --hair: rgba(167,191,162,.28);
+  }
+
+  .viewport { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+  .stage {
+    position: relative; width: 1920px; height: 1080px; flex: none; overflow: hidden;
+    container-type: size; transform: scale(var(--vizscale, 1)); transform-origin: center center;
+    background:
+      radial-gradient(120% 90% at 78% 12%, rgba(217,154,78,.10), transparent 55%),
+      radial-gradient(130% 100% at 12% 96%, rgba(167,191,162,.10), transparent 50%),
+      linear-gradient(155deg, var(--bg) 0%, var(--bg2) 100%);
+    color: var(--ink);
+    font-family: 'Work Sans', system-ui, sans-serif;
+  }
+  /* subtle grain */
+  .stage::after{
+    content:""; position:absolute; inset:0; pointer-events:none; opacity:.05; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .slide {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .6s ease;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 9cqh 11cqw;
+  }
+  .slide.active { opacity: 1; visibility: visible; pointer-events: auto; }
+
+  /* entrance */
+  @media (prefers-reduced-motion: no-preference){
+    .slide.active .rise { animation: rise .9s cubic-bezier(.2,.7,.2,1) both; }
+    .slide.active .rise:nth-child(2){ animation-delay:.08s }
+    .slide.active .rise:nth-child(3){ animation-delay:.16s }
+    .slide.active .rise:nth-child(4){ animation-delay:.24s }
+    .slide.active .rise:nth-child(5){ animation-delay:.32s }
+    .slide.active .draw path{ animation: draw 2.4s ease forwards; }
+  }
+  @keyframes rise { from{ opacity:0; transform:translateY(2.4cqh) } to{ opacity:1; transform:none } }
+  @keyframes draw { from{ stroke-dashoffset:1400 } to{ stroke-dashoffset:0 } }
+
+  /* typography */
+  .kicker{
+    font-family:'Work Sans',sans-serif; font-weight:500; letter-spacing:.42em; text-transform:uppercase;
+    font-size:1.5cqh; color:var(--ochre);
+  }
+  .serif{ font-family:'Fraunces',serif; font-weight:340; }
+  h1{ font-family:'Fraunces',serif; font-weight:340; line-height:1.02; letter-spacing:-.01em; }
+  p{ font-weight:300; }
+  .hair{ height:1px; background:var(--hair); border:0; }
+
+  .counter{
+    position:absolute; right:6cqw; bottom:5cqh; z-index:5;
+    font-size:1.5cqh; letter-spacing:.28em; color:var(--sage-dim); font-weight:400;
+  }
+  .brandmark{
+    position:absolute; left:6cqw; bottom:5cqh; z-index:5;
+    font-size:1.5cqh; letter-spacing:.28em; color:var(--sage-dim); text-transform:uppercase;
+    display:flex; align-items:center; gap:1.1cqw;
+  }
+  .brandmark svg{ width:2.4cqh; height:2.4cqh; }
+
+  /* decorative botanicals */
+  .botanical{ position:absolute; pointer-events:none; }
+  .botanical path, .botanical line, .botanical circle{ fill:none; stroke:var(--sage); }
+
+  /* ---- slide-specific ---- */
+  .s-title{ align-items:flex-start; }
+  .s-title h1{ font-size:12.4cqh; max-width:22ch; }
+  .s-title h1 em{ font-style:italic; color:var(--sage); }
+  .s-title .lede{ font-size:2.5cqh; color:var(--sage); max-width:46ch; margin-top:3.2cqh; line-height:1.5; }
+  .s-title .meta{ margin-top:5cqh; display:flex; gap:2.4cqw; font-size:1.6cqh; letter-spacing:.16em; color:var(--sage-dim); text-transform:uppercase; }
+
+  .two-col{ display:grid; grid-template-columns:1.05fr .95fr; gap:7cqw; align-items:center; }
+  .two-col h1{ font-size:6.6cqh; max-width:16ch; }
+  .two-col .body{ font-size:2.3cqh; line-height:1.65; color:var(--sage); max-width:40ch; margin-top:3cqh; }
+  .two-col .body strong{ color:var(--ink); font-weight:500; }
+
+  .statwrap{ display:flex; flex-direction:column; align-items:flex-end; }
+  .bignum{ font-family:'Fraunces',serif; font-weight:300; font-size:26cqh; line-height:.82; color:var(--ochre); letter-spacing:-.02em; }
+  .statwrap .cap{ font-size:2.2cqh; color:var(--sage); text-align:right; max-width:22ch; margin-top:1cqh; line-height:1.4; }
+
+  .steps h1{ font-size:5.6cqh; margin-bottom:5cqh; }
+  .steplist{ display:grid; grid-template-columns:1fr 1fr; gap:3.2cqh 6cqw; max-width:96ch; }
+  .step{ display:grid; grid-template-columns:auto 1fr; gap:2cqw; align-items:start; padding-bottom:3cqh; border-bottom:1px solid var(--hair); }
+  .step .no{ font-family:'Fraunces',serif; font-size:3cqh; color:var(--ochre); font-weight:400; line-height:1; padding-top:.4cqh; }
+  .step .st-h{ font-family:'Fraunces',serif; font-size:3.2cqh; font-weight:400; }
+  .step .st-b{ font-size:1.85cqh; color:var(--sage); line-height:1.5; margin-top:.8cqh; max-width:34ch; }
+
+  .quote{ align-items:center; text-align:center; }
+  .quote blockquote{ font-family:'Fraunces',serif; font-style:italic; font-weight:300; font-size:8.4cqh; line-height:1.14; max-width:26ch; letter-spacing:-.01em; }
+  .quote blockquote span{ color:var(--ochre); }
+  .quote cite{ display:block; font-style:normal; font-family:'Work Sans',sans-serif; font-size:1.7cqh; letter-spacing:.28em; text-transform:uppercase; color:var(--sage-dim); margin-top:4cqh; }
+
+  .bigstat{ align-items:center; text-align:center; }
+  .bigstat .huge{ font-family:'Fraunces',serif; font-weight:300; font-size:20cqh; line-height:.9; color:var(--ochre); letter-spacing:-.02em; }
+  .bigstat .huge em{ font-style:italic; color:var(--sage); }
+  .bigstat .sub{ font-size:3cqh; color:var(--ink); font-weight:340; font-family:'Fraunces',serif; margin-top:2cqh; max-width:30ch; }
+  .bigstat .foot{ font-size:1.8cqh; color:var(--sage-dim); margin-top:2.4cqh; letter-spacing:.04em; }
+
+  .close{ align-items:flex-start; }
+  .close h1{ font-size:8.6cqh; max-width:20ch; }
+  .close h1 em{ font-style:italic; color:var(--sage); }
+  .close .body{ font-size:2.3cqh; color:var(--sage); max-width:44ch; margin-top:3cqh; line-height:1.6; }
+  .close .sign{ margin-top:4.4cqh; font-size:1.7cqh; letter-spacing:.24em; text-transform:uppercase; color:var(--ochre); }
+</style>
+</head>
+<body>
+<div class="viewport"><div class="stage">
+
+  <!-- 1 · TITLE -->
+  <section class="slide active s-title">
+    <svg class="botanical draw" style="top:-4cqh; right:-2cqw; width:52cqh; height:52cqh; opacity:.55" viewBox="0 0 300 300" fill="none" stroke-width="1.4" stroke-dasharray="1400">
+      <path d="M150 285 C150 200 150 120 150 40"/>
+      <path d="M150 210 C110 200 80 175 68 138 C104 140 135 160 150 195"/>
+      <path d="M150 175 C190 165 220 140 232 103 C196 105 165 125 150 160"/>
+      <path d="M150 140 C110 130 82 106 70 70 C106 72 136 92 150 126"/>
+      <path d="M150 108 C190 98 218 74 230 40 C194 42 165 62 150 96"/>
+      <circle cx="150" cy="40" r="6"/>
+    </svg>
+    <div class="kicker rise">A talk on gardening for biodiversity</div>
+    <h1 class="rise serif">Rewilding<br>Your <em>Backyard</em></h1>
+    <p class="lede rise">Trade the manicured monoculture for a living landscape — and turn the ground beneath your feet back into habitat.</p>
+    <div class="meta rise"><span>Field notes · Vol. 01</span><span>Spring Session</span></div>
+  </section>
+
+  <!-- 2 · WHY LAWNS (two-col) -->
+  <section class="slide two-col">
+    <div>
+      <div class="kicker rise">The problem underfoot</div>
+      <h1 class="rise serif" style="margin-top:2.4cqh">Lawns are<br>ecological<br><em style="font-style:italic;color:var(--sage)">deserts</em>.</h1>
+      <p class="body rise">Turf grass is now the single largest irrigated "crop" in America — roughly <strong>40 million acres</strong>, an area larger than the state of Georgia. It feeds almost nothing. Clipped, sprayed, and non-native, a typical lawn offers no seeds, no host plants, and no shelter for the insects that the entire food web depends on.</p>
+    </div>
+    <div class="statwrap rise">
+      <div class="bignum">40<span style="font-size:8cqh; font-weight:400;">M</span></div>
+      <div class="cap">acres of irrigated lawn in the United States — three times the acreage of any food crop.</div>
+    </div>
+  </section>
+
+  <!-- 3 · PRACTICAL STEPS (list) -->
+  <section class="slide steps">
+    <div class="kicker rise">Where to begin</div>
+    <h1 class="rise serif" style="margin-top:2cqh">Four moves toward a wilder yard</h1>
+    <div class="steplist rise">
+      <div class="step"><div class="no">01</div><div><div class="st-h">Plant natives</div><div class="st-b">Choose species that co-evolved with local wildlife — oaks, goldenrod, milkweed, asters. They feed pollinators and the caterpillars birds rely on.</div></div></div>
+      <div class="step"><div class="no">02</div><div><div class="st-h">Leave the leaves</div><div class="st-b">Fallen leaves are winter housing. Fireflies, luna moths, and native bees overwinter in the litter — rake it into beds, don't bag it.</div></div></div>
+      <div class="step"><div class="no">03</div><div><div class="st-h">Add water</div><div class="st-b">A shallow dish with stones, or a small pond, becomes a magnet — for dragonflies, thirsty birds, and amphibians within a single season.</div></div></div>
+      <div class="step"><div class="no">04</div><div><div class="st-h">Ditch the pesticides</div><div class="st-b">Broad-spectrum sprays kill indiscriminately. Tolerate a few chewed leaves — a healthy garden polices its own pests.</div></div></div>
+    </div>
+  </section>
+
+  <!-- 4 · PULL QUOTE -->
+  <section class="slide quote">
+    <svg class="botanical" style="top:8cqh; left:50%; transform:translateX(-50%); width:9cqw; height:9cqw; opacity:.6" viewBox="0 0 100 100" stroke-width="1.4" fill="none">
+      <path d="M50 90 C50 60 50 40 50 14"/>
+      <path d="M50 52 C30 48 18 34 14 16 C34 20 46 34 50 50"/>
+      <path d="M50 44 C70 40 82 26 86 8 C66 12 54 26 50 42"/>
+    </svg>
+    <blockquote class="rise serif">A garden is not a decoration.<br>It is a decision about <span>who gets to live</span> here.</blockquote>
+    <cite class="rise">— the rewilding ethic</cite>
+  </section>
+
+  <!-- 5 · BIG STAT -->
+  <section class="slide bigstat">
+    <div class="kicker rise">The keystone in your yard</div>
+    <div class="huge rise serif">500<em>+</em></div>
+    <div class="sub rise">species of caterpillar supported by a single native oak tree.</div>
+    <div class="foot rise">A non-native ginkgo, by comparison, supports around five. Plant the oak — you are planting a food web that a nesting chickadee needs 6,000 caterpillars to raise one brood.</div>
+  </section>
+
+  <!-- 6 · CLOSING -->
+  <section class="slide close">
+    <svg class="botanical draw" style="bottom:-6cqh; right:-3cqw; width:48cqh; height:48cqh; opacity:.5" viewBox="0 0 300 300" fill="none" stroke-width="1.4" stroke-dasharray="1400">
+      <path d="M40 300 C120 240 190 180 250 60"/>
+      <path d="M150 168 C150 128 168 96 208 82 C206 122 188 152 152 164"/>
+      <path d="M132 196 C100 188 78 160 76 122 C112 128 132 156 136 192"/>
+      <path d="M198 108 C216 82 214 50 196 22 C180 50 182 82 200 106"/>
+      <circle cx="250" cy="60" r="6"/>
+    </svg>
+    <div class="kicker rise">Begin with one square metre</div>
+    <h1 class="rise serif">The wild is <em>patient</em>.<br>It only needs an invitation.</h1>
+    <p class="body rise">You don't have to convert the whole yard this weekend. Let one corner grow. Plant one native. Skip one mow. The birds, the bees, and the fireflies will find it faster than you'd believe — and your backyard will be quietly, stubbornly alive.</p>
+    <div class="sign rise">Go outside. Let something grow.</div>
+  </section>
+
+  <div class="brandmark">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#7f9a7d" stroke-width="1.4"><path d="M12 22 C12 15 12 9 12 3"/><path d="M12 12 C7 11 4 7 3 2 C8 3 11 7 12 12"/><path d="M12 9 C17 8 20 4 21 -1"/></svg>
+    <span>Rewilding · Field Notes</span>
+  </div>
+  <div class="counter" id="counter"></div>
+
+</div></div>
+
+<script>
+  const stageEl = document.querySelector('.stage');
+  function fitStage(){ const s = Math.min(innerWidth/1920, innerHeight/1080); if(stageEl) stageEl.style.setProperty('--vizscale', s); }
+  addEventListener('resize', fitStage); fitStage();
+  let cur = 0;
+  const slides = () => Array.from(document.querySelectorAll('.slide'));
+  const counter = document.getElementById('counter');
+  function render() {
+    const all = slides();
+    all.forEach((s, n) => s.classList.toggle('active', n === cur));
+    if (counter) counter.textContent = (cur + 1) + ' / ' + all.length;
+  }
+  window.goToSlide = function (i) {
+    const all = slides();
+    cur = Math.max(0, Math.min(i, all.length - 1));
+    render();
+  };
+  addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') goToSlide(cur + 1);
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') goToSlide(cur - 1);
+  });
+  const init = slides().findIndex((s) => s.classList.contains('active'));
+  cur = init < 0 ? 0 : init;
+  render();
+</script>
+</body>
+</html>

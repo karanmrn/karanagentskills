@@ -1,5 +1,5 @@
 /**
- * plan-eng-review plan-mode smoke (gate, paid, real-PTY).
+ * plan-eng-review plan-mode smoke (periodic, paid, real-PTY).
  *
  * See test/skill-e2e-plan-ceo-plan-mode.test.ts for the shared assertion
  * contract. This file exercises the same contract against /plan-eng-review.
@@ -12,7 +12,7 @@ import {
   assertReportAtBottomIfPlanWritten,
 } from './helpers/claude-pty-runner';
 
-const shouldRun = !!process.env.EVALS && process.env.EVALS_TIER === 'gate';
+const shouldRun = !!process.env.EVALS && process.env.EVALS_TIER === 'periodic';
 const describeE2E = shouldRun ? describe : describe.skip;
 
 // SEED_PLAN_FORCING_FINDINGS: 8+ files + custom-vs-builtin smell forces the
@@ -45,7 +45,7 @@ Ignore Bun's native --shard flag because we want full control.
 None planned — will add later.
 `;
 
-describeE2E('plan-eng-review plan-mode smoke (gate)', () => {
+describeE2E('plan-eng-review plan-mode smoke (periodic)', () => {
   test('reaches a terminal outcome (asked or plan_ready) without silent writes', async () => {
     const obs = await runPlanSkillObservation({
       skillName: 'plan-eng-review',
@@ -108,5 +108,15 @@ describeE2E('plan-eng-review plan-mode smoke (gate)', () => {
 
     expect(['asked', 'plan_ready']).toContain(obs.outcome);
     assertReportAtBottomIfPlanWritten(obs);
+
+    // Plan-mode scope-gate bypass: with a seeded plan in plan mode, the gate
+    // must NOT render its "What should I review?" menu — it auto-selects B
+    // and announces it. Exception ordering in the template (plan-mode branch
+    // first) makes this deterministic even though the seed arrives as a
+    // pasted user message. Unseeded test 1 keeps its lenient contract: with
+    // no plan drafted, the "ask as normal" fallback legitimately renders the
+    // question.
+    expect(obs.scopeGateQuestionObserved ?? false).toBe(false);
+    expect(obs.scopeGateAutoSelectObserved ?? false).toBe(true);
   }, 360_000);
 });

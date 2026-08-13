@@ -1,5 +1,5 @@
 /**
- * /plan-eng-review AskUserQuestion floor regression (gate, paid, real-PTY).
+ * /plan-eng-review AskUserQuestion floor regression (periodic, paid, real-PTY).
  *
  * Catches the May 2026 transcript bug where /plan-eng-review wrote a
  * multi-section review plan to ~/.claude/plans/ and called ExitPlanMode
@@ -11,7 +11,7 @@
  * render. See claude-pty-runner.ts for why this is separate from the
  * runPlanSkillCounting harness used by periodic finding-count tests.
  *
- * Tier: gate. Budget: 10 min (early exit on success ~30-90s typical).
+ * Tier: periodic. Budget: 10 min (early exit on success ~30-90s typical).
  * Cost: ~$0.50-$1.50 per run depending on early-exit timing.
  */
 
@@ -19,10 +19,10 @@ import { describe, test } from 'bun:test';
 import { runPlanSkillFloorCheck } from './helpers/claude-pty-runner';
 import { FORCING_FLOOR_ENG } from './fixtures/forcing-finding-seeds';
 
-const shouldRun = !!process.env.EVALS && process.env.EVALS_TIER === 'gate';
+const shouldRun = !!process.env.EVALS && process.env.EVALS_TIER === 'periodic';
 const describeE2E = shouldRun ? describe : describe.skip;
 
-describeE2E('/plan-eng-review AskUserQuestion floor (gate)', () => {
+describeE2E('/plan-eng-review AskUserQuestion floor (periodic)', () => {
   test(
     'seeded forcing finding causes the agent to fire at least one AskUserQuestion',
     async () => {

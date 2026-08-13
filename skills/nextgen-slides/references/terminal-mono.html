@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Anatomy of a Data Breach — sec/ops briefing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #06080700; }
+  body { background: #050706; }
+
+  :root{
+    --bg: #0c0f0d;
+    --bg2: #0a0d0b;
+    --panel: #0f1512;
+    --line: #1c2a22;
+    --green: #3ddc84;
+    --green-bright: #7CFF9B;
+    --dim: #4f6b5b;
+    --text: #b9d4c4;
+    --amber: #ffcc66;
+    --red: #ff5f56;
+    --yellow: #ffbd2e;
+    --grn-dot: #27c93f;
+  }
+
+  .viewport { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+  .stage {
+    position: relative; width: 1920px; height: 1080px; flex: none; overflow: hidden;
+    container-type: size; transform: scale(var(--vizscale, 1)); transform-origin: center center;
+    background:
+      radial-gradient(120% 90% at 50% -10%, #10201700 0%, #060807 70%),
+      linear-gradient(180deg, #0c0f0d 0%, #090c0a 100%);
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    color: var(--text);
+  }
+
+  /* scanlines + vignette overlays */
+  .stage::before{
+    content:""; position:absolute; inset:0; pointer-events:none; z-index:60;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 2px, rgba(0,0,0,.16) 3px, rgba(0,0,0,0) 4px);
+    mix-blend-mode: multiply; opacity:.55;
+  }
+  .stage::after{
+    content:""; position:absolute; inset:0; pointer-events:none; z-index:61;
+    background: radial-gradient(130% 100% at 50% 45%, transparent 55%, rgba(0,0,0,.55) 100%);
+  }
+
+  .slide {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .5s ease;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 6cqh 7cqw;
+  }
+  .slide.active { opacity: 1; visibility: visible; pointer-events: auto; }
+
+  /* faux terminal window chrome */
+  .win{
+    position:absolute; inset: 4.2cqh 4.2cqw; border:1px solid var(--line);
+    border-radius: 10px; background:
+      linear-gradient(180deg, rgba(20,30,24,.55), rgba(10,14,12,.55));
+    box-shadow: 0 0 0 1px #0a0d0b, 0 40px 90px -30px rgba(0,0,0,.8), inset 0 0 120px rgba(61,220,132,.03);
+    z-index:0;
+  }
+  .titlebar{
+    position:absolute; top:0; left:0; right:0; height: 5.2cqh; border-bottom:1px solid var(--line);
+    display:flex; align-items:center; gap: 1cqw; padding: 0 2cqw;
+    background: linear-gradient(180deg, #111815, #0d1210); border-radius: 10px 10px 0 0;
+    z-index:2;
+  }
+  .dots{ display:flex; gap: .55cqw; }
+  .dot{ width: 1.05cqh; height: 1.05cqh; border-radius:50%; }
+  .dot.r{ background: var(--red);} .dot.y{ background: var(--yellow);} .dot.g{ background: var(--grn-dot);}
+  .winttl{ color: var(--dim); font-size: 1.5cqh; letter-spacing:.12em; }
+  .winttl b{ color: var(--text); font-weight:500; }
+  .body{
+    position:absolute; inset: 5.2cqh 0 0 0; padding: 4.5cqh 4cqw 3.5cqh;
+    display:flex; flex-direction:column; z-index:2;
+  }
+
+  .prompt{ color: var(--dim); font-size: 1.7cqh; letter-spacing:.06em; margin-bottom: 2.2cqh; }
+  .prompt .u{ color: var(--green); } .prompt .h{ color: var(--green-bright); } .prompt .p{ color:#5aa5cf; }
+  .prompt .cmd{ color: var(--text); }
+
+  .cursor{ display:inline-block; width: .55cqw; height: 1.7cqh; background: var(--green-bright);
+    transform: translateY(.25cqh); animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  h1,h2,h3{ font-weight:800; letter-spacing:-.01em; color:#eafff2; line-height:1.02; }
+
+  .kicker{ color: var(--green); font-size: 1.7cqh; letter-spacing:.34em; text-transform:uppercase; }
+
+  /* ---------- TITLE / boot ---------- */
+  .boot .body{ justify-content:center; }
+  .bootlog{ font-size: 1.75cqh; line-height: 2.05; color: var(--dim); margin-bottom: 3.6cqh; max-width: 78ch; }
+  .bootlog .ok{ color: var(--green); }
+  .bootlog .wr{ color: var(--amber); }
+  .bootlog b{ color: var(--text); font-weight:400; }
+  .title-main{ font-size: 8.6cqh; line-height:.98; color:#eafff2;
+    text-shadow: 0 0 34px rgba(61,220,132,.28); }
+  .title-main .g{ color: var(--green-bright); }
+  .subttl{ margin-top: 2.6cqh; font-size: 2.4cqh; color: var(--text); max-width: 70ch; }
+  .meta{ margin-top: 4cqh; display:flex; gap: 4cqw; color: var(--dim); font-size: 1.7cqh; }
+  .meta b{ color: var(--green); font-weight:500; }
+
+  /* ---------- generic heads ---------- */
+  .slidehead{ display:flex; align-items:baseline; justify-content:space-between; gap:2cqw;
+    border-bottom:1px dashed var(--line); padding-bottom: 2cqh; margin-bottom: 3.2cqh; }
+  .slidehead h2{ font-size: 4.6cqh; }
+  .tag{ color: var(--dim); font-size: 1.6cqh; letter-spacing:.14em; }
+
+  /* ---------- timeline log ---------- */
+  .log{ font-size: 2.15cqh; line-height: 1.95; }
+  .logrow{ display:grid; grid-template-columns: 15ch 15ch 1fr; gap: 2cqw; align-items:baseline;
+    padding: 1.15cqh 0; border-bottom:1px solid #121a15; }
+  .logrow .ts{ color: var(--dim); }
+  .logrow .ph{ font-weight:700; }
+  .p1{ color: var(--green); } .p2{ color:#67c8ff; } .p3{ color: var(--amber); } .p4{ color: var(--red); }
+  .logrow .desc{ color: var(--text); }
+  .logrow .desc small{ color: var(--dim); display:block; font-size:1.55cqh; margin-top:.2cqh; letter-spacing:.02em; }
+  .arrowline{ margin-top: 2.4cqh; color: var(--dim); font-size: 1.9cqh; letter-spacing:.05em; }
+  .arrowline .a{ color: var(--green-bright); }
+
+  /* ---------- big stat ---------- */
+  .stats{ display:grid; grid-template-columns: 1fr 1fr; gap: 3cqw 5cqw; margin-top: 1cqh; }
+  .statcard{ border:1px solid var(--line); border-left: 3px solid var(--green); border-radius:6px;
+    padding: 3cqh 2.4cqw; background: linear-gradient(180deg, rgba(61,220,132,.04), transparent); }
+  .statcard.amber{ border-left-color: var(--amber); }
+  .statcard.red{ border-left-color: var(--red); }
+  .statnum{ font-size: 7.4cqh; font-weight:800; color: var(--green-bright); line-height:1;
+    text-shadow: 0 0 26px rgba(124,255,155,.25); }
+  .statcard.amber .statnum{ color: var(--amber); text-shadow: 0 0 26px rgba(255,204,102,.22); }
+  .statcard.red .statnum{ color: var(--red); text-shadow: 0 0 26px rgba(255,95,86,.22); }
+  .statlbl{ margin-top: 1.2cqh; font-size: 2cqh; color: var(--text); }
+  .statsub{ margin-top:.6cqh; font-size: 1.55cqh; color: var(--dim); letter-spacing:.02em; }
+
+  /* ---------- table ---------- */
+  table{ width:100%; border-collapse:collapse; font-size: 2cqh; }
+  thead th{ text-align:left; color: var(--green); font-weight:700; letter-spacing:.08em;
+    border-bottom:1px solid var(--line); padding: 1.4cqh 1.5cqw; font-size:1.7cqh; text-transform:uppercase; }
+  tbody td{ padding: 1.35cqh 1.5cqw; border-bottom:1px solid #121a15; color: var(--text); }
+  tbody tr td:first-child{ color:#eafff2; }
+  .bar{ display:inline-block; height: 1.2cqh; background: var(--green); vertical-align:middle;
+    margin-right: .7cqw; box-shadow: 0 0 10px rgba(61,220,132,.4); }
+  .pct{ color: var(--green-bright); font-weight:700; }
+  tbody tr:hover td{ background: rgba(61,220,132,.04); }
+
+  /* ---------- checklist ---------- */
+  .checks{ display:grid; grid-template-columns: 1fr 1fr; gap: 1.8cqh 5cqw; margin-top:1cqh; font-size: 2.15cqh; }
+  .chk{ display:flex; gap: 1.2cqw; align-items:flex-start; padding: 1.1cqh 0; }
+  .chk .box{ color: var(--green); font-weight:700; flex:none; }
+  .chk .t{ color:#eafff2; font-weight:500; }
+  .chk .t small{ display:block; color: var(--dim); font-weight:400; font-size:1.55cqh; margin-top:.2cqh; }
+
+  /* ---------- closing ---------- */
+  .close .body{ justify-content:center; }
+  .close h2{ font-size: 6.4cqh; color:#eafff2; text-shadow:0 0 30px rgba(61,220,132,.25); }
+  .close h2 .g{ color: var(--green-bright); }
+  .close .lead{ margin-top: 2.6cqh; font-size: 2.4cqh; color: var(--text); max-width: 66ch; line-height:1.55; }
+  .signoff{ margin-top: 4cqh; font-size: 1.9cqh; color: var(--dim); }
+  .signoff .u{ color: var(--green); } .signoff .h{ color: var(--green-bright); }
+
+  .counter{ position:absolute; right: 4.6cqw; bottom: 5.4cqh; z-index: 40;
+    color: var(--dim); font-size: 1.55cqh; letter-spacing:.18em; }
+  .brandfoot{ position:absolute; left: 5cqw; bottom: 5.4cqh; z-index:40;
+    color: var(--dim); font-size: 1.5cqh; letter-spacing:.12em; }
+  .brandfoot .g{ color: var(--green); }
+
+  @media (prefers-reduced-motion: no-preference){
+    .slide.active .anim{ animation: rise .55s cubic-bezier(.2,.7,.2,1) both; }
+    .slide.active .anim.d1{ animation-delay:.05s;} .slide.active .anim.d2{ animation-delay:.13s;}
+    .slide.active .anim.d3{ animation-delay:.21s;} .slide.active .anim.d4{ animation-delay:.29s;}
+    .slide.active .anim.d5{ animation-delay:.37s;} .slide.active .anim.d6{ animation-delay:.45s;}
+    @keyframes rise{ from{ opacity:0; transform: translateY(1.6cqh);} to{ opacity:1; transform:none; } }
+  }
+</style>
+</head>
+<body>
+<div class="viewport"><div class="stage">
+
+  <!-- 1. TITLE / BOOT -->
+  <section class="slide active boot">
+    <div class="win"></div>
+    <div class="titlebar">
+      <div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div>
+      <div class="winttl"><b>root@breach-lab</b>: /var/log/incident — 82×40</div>
+    </div>
+    <div class="body">
+      <div class="bootlog anim d1">
+        <span class="ok">[ OK ]</span> mounting /forensics ... done<br>
+        <span class="ok">[ OK ]</span> loading threat-intel feeds (MITRE ATT&CK v15) ... done<br>
+        <span class="wr">[WARN]</span> 6,842 breaches indexed this fiscal year<br>
+        <span class="ok">[ OK ]</span> initializing briefing <b>anatomy_of_a_breach.sh</b> ...
+      </div>
+      <div class="kicker anim d2">SECURITY BRIEFING // SESSION 0xA3</div>
+      <h1 class="title-main anim d3">ANATOMY OF A<br><span class="g">DATA BREACH_</span></h1>
+      <div class="subttl anim d4">How an intrusion unfolds — from the first scan to the final exfil — and where the kill chain can still be broken.</div>
+      <div class="meta anim d5">
+        <div>presenter&nbsp; <b>M. Nylund</b></div>
+        <div>classification&nbsp; <b>TLP:CLEAR</b></div>
+        <div>runtime&nbsp; <b>~35 min</b></div>
+      </div>
+      <div class="prompt anim d6" style="margin-top:3.2cqh">
+        <span class="u">root@breach-lab</span><span class="p">:</span><span class="h">~</span><span class="p">$</span>
+        <span class="cmd"> ./anatomy_of_a_breach.sh --start</span><span class="cursor"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. ATTACK TIMELINE -->
+  <section class="slide">
+    <div class="win"></div>
+    <div class="titlebar">
+      <div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div>
+      <div class="winttl"><b>analyst@soc</b>: tail -f kill_chain.log</div>
+    </div>
+    <div class="body">
+      <div class="prompt anim d1"><span class="u">analyst@soc</span><span class="p">:</span><span class="h">~</span><span class="p">$</span> <span class="cmd">grep -E 'PHASE' kill_chain.log --color</span></div>
+      <div class="slidehead anim d1">
+        <h2>The Attack Timeline</h2>
+        <span class="tag">// dwell time before detection: weeks → months</span>
+      </div>
+      <div class="log">
+        <div class="logrow anim d2"><span class="ts">T+00:00:00</span><span class="ph p1">RECON</span>
+          <span class="desc">Passive OSINT, DNS enumeration &amp; port scans map the external attack surface.
+            <small>harvested creds from prior leaks, exposed RDP/VPN endpoints, employee footprint</small></span></div>
+        <div class="logrow anim d3"><span class="ts">T+04:12:37</span><span class="ph p2">INTRUSION</span>
+          <span class="desc">Initial access — a phishing payload or an unpatched edge device gives a foothold.
+            <small>valid account (T1078) · exploit public-facing app (T1190) · spearphish (T1566)</small></span></div>
+        <div class="logrow anim d4"><span class="ts">T+31:40:05</span><span class="ph p3">ESCALATION</span>
+          <span class="desc">Privilege escalation and lateral movement toward domain admin &amp; crown-jewel systems.
+            <small>Kerberoasting, token theft, pass-the-hash across flat internal network</small></span></div>
+        <div class="logrow anim d5"><span class="ts">T+188:22:19</span><span class="ph p4">EXFILTRATION</span>
+          <span class="desc">Data staged, compressed, and siphoned over encrypted channels — often before ransomware fires.
+            <small>double-extortion: steal first, encrypt second, then leak to force payment</small></span></div>
+      </div>
+      <div class="arrowline anim d6">recon <span class="a">──▶</span> intrusion <span class="a">──▶</span> escalation <span class="a">──▶</span> exfiltration <span class="a">──▶</span> <span style="color:var(--red)">impact</span></div>
+    </div>
+    <div class="brandfoot"><span class="g">$</span> anatomy_of_a_breach</div>
+  </section>
+
+  <!-- 3. BIG STATS -->
+  <section class="slide">
+    <div class="win"></div>
+    <div class="titlebar">
+      <div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div>
+      <div class="winttl"><b>analyst@soc</b>: cat breach_economics.stat</div>
+    </div>
+    <div class="body">
+      <div class="prompt anim d1"><span class="u">analyst@soc</span><span class="p">:</span><span class="h">~</span><span class="p">$</span> <span class="cmd">./report --metrics global 2024</span></div>
+      <div class="slidehead anim d1">
+        <h2>The Cost of Getting Breached</h2>
+        <span class="tag">// source: IBM Cost of a Data Breach, 2024</span>
+      </div>
+      <div class="stats">
+        <div class="statcard red anim d2">
+          <div class="statnum">$4.88M</div>
+          <div class="statlbl">Average total cost of a data breach</div>
+          <div class="statsub">up 10% year-over-year — the largest jump since the pandemic</div>
+        </div>
+        <div class="statcard amber anim d3">
+          <div class="statnum">277 days</div>
+          <div class="statlbl">Mean time to identify &amp; contain</div>
+          <div class="statsub">~194 days to detect + 83 days to contain the incident</div>
+        </div>
+        <div class="statcard anim d4">
+          <div class="statnum">$2.22M</div>
+          <div class="statlbl">Saved by teams using security AI &amp; automation</div>
+          <div class="statsub">the single biggest cost-mitigating factor measured</div>
+        </div>
+        <div class="statcard amber anim d5">
+          <div class="statnum">16%</div>
+          <div class="statlbl">Of breaches begin with stolen or compromised credentials</div>
+          <div class="statsub">the most common — and slowest to detect — initial vector</div>
+        </div>
+      </div>
+    </div>
+    <div class="brandfoot"><span class="g">$</span> anatomy_of_a_breach</div>
+  </section>
+
+  <!-- 4. ATTACK VECTORS TABLE -->
+  <section class="slide">
+    <div class="win"></div>
+    <div class="titlebar">
+      <div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div>
+      <div class="winttl"><b>analyst@soc</b>: SELECT * FROM initial_vectors</div>
+    </div>
+    <div class="body">
+      <div class="prompt anim d1"><span class="u">analyst@soc</span><span class="p">:</span><span class="h">~</span><span class="p">$</span> <span class="cmd">sort -k2 -rn vectors.tsv | head</span></div>
+      <div class="slidehead anim d1">
+        <h2>Most Common Attack Vectors</h2>
+        <span class="tag">// how attackers get in first</span>
+      </div>
+      <table>
+        <thead><tr><th>Initial vector</th><th>Share</th><th>Relative frequency</th><th>Primary control</th></tr></thead>
+        <tbody>
+          <tr class="anim d2"><td>Stolen / compromised credentials</td><td class="pct">16%</td>
+            <td><span class="bar" style="width:16cqw"></span></td><td>Phishing-resistant MFA</td></tr>
+          <tr class="anim d3"><td>Phishing &amp; social engineering</td><td class="pct">15%</td>
+            <td><span class="bar" style="width:15cqw"></span></td><td>Email filtering + training</td></tr>
+          <tr class="anim d4"><td>Cloud misconfiguration</td><td class="pct">12%</td>
+            <td><span class="bar" style="width:12cqw"></span></td><td>CSPM / posture scanning</td></tr>
+          <tr class="anim d5"><td>Vulnerability in third-party software</td><td class="pct">11%</td>
+            <td><span class="bar" style="width:11cqw"></span></td><td>Patch SLAs + SBOM</td></tr>
+          <tr class="anim d5"><td>Malicious insider</td><td class="pct">7%</td>
+            <td><span class="bar" style="width:7cqw"></span></td><td>Least privilege + UEBA</td></tr>
+          <tr class="anim d6"><td>Business email compromise</td><td class="pct">6%</td>
+            <td><span class="bar" style="width:6cqw"></span></td><td>Out-of-band verification</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="brandfoot"><span class="g">$</span> anatomy_of_a_breach</div>
+  </section>
+
+  <!-- 5. DEFENSE CHECKLIST -->
+  <section class="slide">
+    <div class="win"></div>
+    <div class="titlebar">
+      <div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div>
+      <div class="winttl"><b>blueteam@soc</b>: ./harden.sh --checklist</div>
+    </div>
+    <div class="body">
+      <div class="prompt anim d1"><span class="u">blueteam@soc</span><span class="p">:</span><span class="h">~</span><span class="p">$</span> <span class="cmd">./harden.sh --audit --fix</span></div>
+      <div class="slidehead anim d1">
+        <h2>Breaking the Kill Chain</h2>
+        <span class="tag">// defense-in-depth checklist</span>
+      </div>
+      <div class="checks">
+        <div class="chk anim d2"><span class="box">[✓]</span><span class="t">Enforce phishing-resistant MFA <small>FIDO2 / passkeys on every account, no SMS fallback</small></span></div>
+        <div class="chk anim d2"><span class="box">[✓]</span><span class="t">Patch internet-facing systems fast <small>edge devices &amp; known-exploited CVEs within 72h</small></span></div>
+        <div class="chk anim d3"><span class="box">[✓]</span><span class="t">Segment the network <small>kill the flat LAN — contain lateral movement by design</small></span></div>
+        <div class="chk anim d3"><span class="box">[✓]</span><span class="t">Least-privilege &amp; just-in-time access <small>no standing domain admin; tier your identities</small></span></div>
+        <div class="chk anim d4"><span class="box">[✓]</span><span class="t">Centralize logging + EDR <small>you can't respond to what you can't see — 24/7 detection</small></span></div>
+        <div class="chk anim d4"><span class="box">[✓]</span><span class="t">Encrypt &amp; back up offline <small>immutable, tested restores defeat double-extortion</small></span></div>
+        <div class="chk anim d5"><span class="box">[✓]</span><span class="t">Rehearse the incident-response plan <small>tabletop quarterly — response time is money</small></span></div>
+        <div class="chk anim d5"><span class="box">[✓]</span><span class="t">Assume breach: monitor egress <small>DLP + anomaly detection on outbound data flows</small></span></div>
+      </div>
+    </div>
+    <div class="brandfoot"><span class="g">$</span> anatomy_of_a_breach</div>
+  </section>
+
+  <!-- 6. CLOSING -->
+  <section class="slide close">
+    <div class="win"></div>
+    <div class="titlebar">
+      <div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div>
+      <div class="winttl"><b>root@breach-lab</b>: session end</div>
+    </div>
+    <div class="body">
+      <div class="kicker anim d1">// END OF BRIEFING</div>
+      <h2 class="anim d2">It's not <span class="g">if</span> — it's<br><span class="g">when</span>, and how fast you catch it.</h2>
+      <div class="lead anim d3">Every breach is a timeline. The attacker only has to succeed once at each stage — the defender's job is to add friction and detection at all of them, and to shorten the 277 days between compromise and containment.</div>
+      <div class="signoff anim d4">
+        <span class="u">root@breach-lab</span>:<span class="h">~</span>$ shutdown -h now <span class="cursor"></span><br>
+        <span style="color:var(--dim)"># questions → madsnyl@gmail.com · slides &amp; refs available on request</span>
+      </div>
+    </div>
+    <div class="brandfoot"><span class="g">$</span> anatomy_of_a_breach</div>
+  </section>
+
+  <div class="counter" id="counter"></div>
+</div></div>
+
+<script>
+  const stageEl = document.querySelector('.stage');
+  function fitStage(){ const s = Math.min(innerWidth/1920, innerHeight/1080); if(stageEl) stageEl.style.setProperty('--vizscale', s); }
+  addEventListener('resize', fitStage); fitStage();
+  let cur = 0;
+  const slides = () => Array.from(document.querySelectorAll('.slide'));
+  const counter = document.getElementById('counter');
+  function render() {
+    const all = slides();
+    all.forEach((s, n) => s.classList.toggle('active', n === cur));
+    if (counter) counter.textContent = (cur + 1) + ' / ' + all.length;
+  }
+  window.goToSlide = function (i) {
+    const all = slides();
+    cur = Math.max(0, Math.min(i, all.length - 1));
+    render();
+  };
+  addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') goToSlide(cur + 1);
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') goToSlide(cur - 1);
+  });
+  const init = slides().findIndex((s) => s.classList.contains('active'));
+  cur = init < 0 ? 0 : init;
+  render();
+</script>
+</body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Outline</title>
+<style>
+  /* OUTLINE CANVAS — deliberately plain. Content first; the real style is
+     applied later. Same .slide / .active / goToSlide contract as a real deck,
+     so the visualizer (inline editing + comments) works on it unchanged.
+     Double-click any text to edit it. */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #ececea; }
+  .viewport { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+  .stage { position: relative; width: 1920px; height: 1080px; flex: none; overflow: hidden;
+           container-type: size; transform: scale(var(--vizscale, 1)); transform-origin: center center; }
+
+  .slide {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .35s ease;
+    display: flex; flex-direction: column; justify-content: center;
+    background: #ffffff;
+    color: #1b1b1a;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    padding: clamp(56px, 9cqh, 120px) clamp(64px, 9cqw, 180px);
+  }
+  .slide.active { opacity: 1; visibility: visible; pointer-events: auto; }
+
+  /* a corner label so each slide reads as a slide, not a page */
+  .slidelabel {
+    position: absolute; top: clamp(28px, 4cqh, 52px); left: clamp(64px, 9cqw, 180px);
+    font-size: clamp(12px, 1.1cqw, 15px); letter-spacing: .28em; text-transform: uppercase;
+    color: #9a9a95; font-weight: 700;
+  }
+
+  h1 { font-size: clamp(40px, 6cqw, 84px); line-height: 1.08; font-weight: 800; letter-spacing: -1px; }
+  h2 { font-size: clamp(30px, 4.4cqw, 60px); line-height: 1.1; font-weight: 800; margin-bottom: .5em; }
+  p, li { font-size: clamp(18px, 2.2cqw, 32px); line-height: 1.5; max-width: 46ch; color: #33332f; }
+  .subtitle { margin-top: .7em; color: #6a6a63; }
+  ul { margin-top: .7em; padding-left: 1.3em; display: flex; flex-direction: column; gap: clamp(8px, 1.4cqh, 16px); }
+
+  /* faint guidance the user replaces with real content */
+  .hint { color: #a7a7a0; font-style: italic; }
+
+  /* live page counter — JS keeps it in sync; never numbered by hand */
+  .counter { position: fixed; right: clamp(40px, 5cqw, 80px); bottom: clamp(28px, 4cqh, 56px); z-index: 2;
+             font-family: -apple-system, system-ui, sans-serif; font-size: clamp(12px, 1cqw, 16px);
+             color: #b6b6b0; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  /* mode banner — makes it obvious this is the content-first outline */
+  .modebar {
+    position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 3;
+    font: 600 12px/1 -apple-system, system-ui, sans-serif; letter-spacing: .04em;
+    color: #7a7a72; background: #f4f4f1; border: 1px solid #dcdcd6;
+    padding: 6px 14px; border-radius: 999px; pointer-events: none;
+  }
+</style>
+</head>
+<body>
+  <div class="modebar">OUTLINE · content first — style comes later</div>
+  <div class="viewport"><div class="stage">
+
+    <!-- SLIDE 1 — title -->
+    <section class="slide active">
+      <div class="slidelabel">Slide 01 · Title</div>
+      <h1>Working title of the talk</h1>
+      <p class="subtitle">One line that frames what this is about.</p>
+    </section>
+
+    <!-- SLIDE 2 — a content slide -->
+    <section class="slide">
+      <div class="slidelabel">Slide 02 · Section</div>
+      <h2>The point of this slide</h2>
+      <ul>
+        <li>First thing to say</li>
+        <li>Second thing to say</li>
+        <li class="hint">what else belongs here?</li>
+      </ul>
+    </section>
+
+    <!-- SLIDE 3 — closing -->
+    <section class="slide">
+      <div class="slidelabel">Slide 03 · Close</div>
+      <h2>The takeaway</h2>
+      <p>What you want them to remember, or the call to action.</p>
+    </section>
+
+    <div class="counter" id="counter"></div>
+  </div></div>
+
+<script>
+  // ---- page swapping + live page count (exposes window.goToSlide) ----
+  const stageEl = document.querySelector('.stage');
+  function fitStage(){ const s = Math.min(innerWidth/1920, innerHeight/1080); if(stageEl) stageEl.style.setProperty('--vizscale', s); }
+  addEventListener('resize', fitStage); fitStage();
+  let cur = 0;
+  const slides = () => Array.from(document.querySelectorAll('.slide'));
+  const counter = document.getElementById('counter');
+  function render() {
+    const all = slides();
+    all.forEach((s, n) => s.classList.toggle('active', n === cur));
+    if (counter) counter.textContent = (cur + 1) + ' / ' + all.length;
+  }
+  window.goToSlide = function (i) {
+    const all = slides();
+    cur = Math.max(0, Math.min(i, all.length - 1));
+    render();
+  };
+  addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') goToSlide(cur + 1);
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') goToSlide(cur - 1);
+  });
+  const init = slides().findIndex((s) => s.classList.contains('active'));
+  cur = init < 0 ? 0 : init;
+  render();
+</script>
+</body>
+</html>

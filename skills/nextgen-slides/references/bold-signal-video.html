@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>State of Remote Work 2026 — Bold Signal (video)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+
+  :root {
+    --bg: #0a0a0a; --ink: #ffffff; --accent: #ff4d3d; --muted: #7a7a7a; --line: #2a2a2a;
+  }
+
+  .viewport { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: #000; }
+  .stage {
+    position: relative; width: 1920px; height: 1080px; flex: none; overflow: hidden;
+    container-type: size; transform: scale(var(--vizscale, 1)); transform-origin: center center;
+    background: var(--bg); color: var(--ink); font-family: "Inter Tight", sans-serif;
+  }
+
+  /* Each SCENE is a time slice (data-dur ms). The engine drives visibility +
+     per-element motion off one master clock, so the whole thing scrubs. */
+  .scene {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    opacity: 0; visibility: hidden;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 8cqh 8cqw;
+  }
+
+  /* atmospheric grain + faint grid */
+  .stage::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 40;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 6.4cqw 6.4cqw; opacity: 0.12; mix-blend-mode: screen;
+  }
+
+  h1, h2, h3, .num, .kicker, .index, .rank { font-family: "Space Grotesk", sans-serif; }
+  .em { color: var(--accent); }
+
+  .kicker { font-size: 1.9cqh; font-weight: 600; letter-spacing: 0.5em; text-transform: uppercase; color: var(--accent); }
+  .tag-strip { position: absolute; top: 6cqh; left: 8cqw; font-size: 1.5cqh; letter-spacing: 0.3em;
+    color: var(--muted); text-transform: uppercase; z-index: 20; display: flex; align-items: center; gap: 1.2cqw; }
+  .dot { width: 1cqh; height: 1cqh; background: var(--accent); display: inline-block; }
+  .timecode { position: absolute; bottom: 5cqh; right: 8cqw; z-index: 50;
+    font-family: "Space Grotesk", sans-serif; font-size: 1.6cqh; letter-spacing: 0.3em; color: var(--muted); }
+
+  /* ---- scene 1: title ---- */
+  .s-title { justify-content: space-between; }
+  .title-main h1 { font-size: 16cqh; font-weight: 700; line-height: 0.84; letter-spacing: -0.04em; text-transform: uppercase; }
+  .title-bottom { display: flex; justify-content: space-between; align-items: flex-end; }
+  .title-bottom p { font-size: 2.3cqh; max-width: 44ch; color: #cfcfcf; line-height: 1.35; }
+  .title-year { font-family: "Space Grotesk", sans-serif; font-weight: 700; font-size: 6cqh; letter-spacing: -0.02em; }
+
+  /* ---- big stat scenes ---- */
+  .s-stat { justify-content: center; }
+  .s-stat .num { font-weight: 700; letter-spacing: -0.05em; line-height: 0.82; font-size: 46cqh; display: flex; align-items: flex-start; }
+  .s-stat .num .unit { font-size: 18cqh; color: var(--accent); margin-left: 1cqw; }
+  .s-stat .caption { margin-top: 2cqh; font-size: 3cqh; max-width: 42ch; color: #d6d6d6; line-height: 1.25; }
+  .s-stat .caption b { color: var(--ink); font-weight: 600; }
+  .stat-foot { position: absolute; bottom: 6cqh; left: 8cqw; font-size: 1.7cqh; color: var(--muted); letter-spacing: 0.05em; }
+  .s-stat.invert { background: var(--accent); color: #0a0a0a; }
+  .s-stat.invert .kicker, .s-stat.invert .num .unit { color: #0a0a0a; }
+  .s-stat.invert .caption { color: #1a0a08; } .s-stat.invert .caption b { color: #000; }
+  .s-stat.invert .stat-foot, .s-stat.invert .tag-strip, .s-stat.invert .timecode { color: #5a1e18; }
+  .s-stat.invert .dot { background: #0a0a0a; }
+
+  /* ---- friction list scene ---- */
+  .s-list .kicker { margin-bottom: 3.4cqh; }
+  .frict-row { display: grid; grid-template-columns: 9cqw 1fr 16cqw; align-items: center;
+    border-top: 2px solid var(--line); padding: 2.3cqh 0; }
+  .frict-row:last-child { border-bottom: 2px solid var(--line); }
+  .frict-row .rank { font-weight: 700; font-size: 6cqh; letter-spacing: -0.03em; color: var(--muted); }
+  .frict-row .label { font-size: 3.2cqh; font-weight: 500; letter-spacing: -0.01em; }
+  .frict-row .pct { font-family: "Space Grotesk", sans-serif; font-weight: 700; font-size: 4.4cqh; text-align: right; letter-spacing: -0.03em; color: var(--accent); }
+
+  /* ---- closing scene ---- */
+  .s-close { justify-content: center; align-items: flex-start; }
+  .s-close h2 { font-size: 10cqh; font-weight: 700; text-transform: uppercase; line-height: 0.9; letter-spacing: -0.03em; max-width: 22ch; }
+  .s-close .sign { margin-top: 6cqh; display: flex; align-items: center; gap: 1.5cqw;
+    font-family: "Space Grotesk", sans-serif; letter-spacing: 0.3em; text-transform: uppercase; font-size: 1.8cqh; color: var(--muted); }
+  .s-close .sign .bar { width: 8cqw; height: 0.4cqh; background: var(--accent); }
+</style>
+</head>
+<body>
+<div class="viewport"><div class="stage">
+
+  <!-- ============ SCENE 1 · TITLE (3.4s) ============ -->
+  <section class="scene s-title" data-dur="3400">
+    <div class="tag-strip"><span class="dot"></span> Signal Report · 2026</div>
+    <div class="title-main">
+      <h1>
+        <span data-anim="wipe" data-at="120" data-dur="520">State of</span><br>
+        <span data-anim="wipe" data-at="300" data-dur="520">Remote</span><br>
+        <span class="em" data-anim="wipe" data-at="480" data-dur="560">Work</span>
+      </h1>
+    </div>
+    <div class="title-bottom">
+      <p data-anim="rise" data-at="820" data-dur="620">A field report on where distributed teams actually landed — the money, the friction, and the new default.</p>
+      <div class="title-year" data-anim="pop" data-at="980" data-dur="620">2026</div>
+    </div>
+  </section>
+
+  <!-- ============ SCENE 2 · STAT 58% (2.9s) ============ -->
+  <section class="scene s-stat" data-dur="2900">
+    <div class="tag-strip"><span class="dot"></span> The New Default</div>
+    <div class="kicker" data-anim="rise" data-at="80" data-dur="480">Team Structure</div>
+    <div class="num" data-anim="rise-lg" data-at="180" data-dur="620"><span data-count-to="58" data-count-dur="1100" data-at="180">0</span><span class="unit">%</span></div>
+    <div class="caption" data-anim="rise" data-at="640" data-dur="560">of teams now run <b>hybrid</b> — the single largest operating model, ahead of fully-remote (27%) and in-office (15%).</div>
+    <div class="stat-foot" data-anim="fade" data-at="900" data-dur="500">n = 4,200 companies · 41 countries · Q1 2026</div>
+  </section>
+
+  <!-- ============ SCENE 3 · STAT 3.1d (invert, 2.7s) ============ -->
+  <section class="scene s-stat invert" data-dur="2700">
+    <div class="tag-strip"><span class="dot"></span> Cadence</div>
+    <div class="kicker" data-anim="rise" data-at="80" data-dur="480">Average In-Office</div>
+    <div class="num" data-anim="rise-lg" data-at="180" data-dur="620"><span data-count-to="3.1" data-count-dec="1" data-count-dur="1000" data-at="180">0.0</span><span class="unit">d</span></div>
+    <div class="caption" data-anim="rise" data-at="640" data-dur="560">days per week, up from 2.4 in 2024. Tuesday–Thursday now carry <b>71%</b> of all badge-ins.</div>
+    <div class="stat-foot" data-anim="fade" data-at="900" data-dur="500">Median across hybrid-mandated orgs, weighted by headcount</div>
+  </section>
+
+  <!-- ============ SCENE 4 · STAT $11.2k (2.9s) ============ -->
+  <section class="scene s-stat" data-dur="2900">
+    <div class="tag-strip"><span class="dot"></span> Economics</div>
+    <div class="kicker" data-anim="rise" data-at="80" data-dur="480">Annual Savings</div>
+    <div class="num" data-anim="rise-lg" data-at="180" data-dur="620"><span class="unit" style="font-size:18cqh;margin:0 .6cqw 0 0;">$</span><span data-count-to="11.2" data-count-dec="1" data-count-dur="1100" data-at="180">0.0</span><span class="unit">k</span></div>
+    <div class="caption" data-anim="rise" data-at="640" data-dur="560">saved per remote employee each year. At scale, a <b>1,000-person</b> shift frees $11.2M.</div>
+    <div class="stat-foot" data-anim="fade" data-at="900" data-dur="500">Employer-side net · excludes one-time relocation costs</div>
+  </section>
+
+  <!-- ============ SCENE 5 · FRICTION LIST (3.4s) ============ -->
+  <section class="scene s-list" data-dur="3400">
+    <div class="tag-strip"><span class="dot"></span> Where It Breaks</div>
+    <div class="kicker" data-anim="rise" data-at="80" data-dur="480">Top Friction Points · % citing as "significant"</div>
+    <div class="frict">
+      <div class="frict-row" data-anim="rise" data-at="360" data-dur="480"><div class="rank">01</div><div class="label">Meeting overload &amp; calendar sprawl</div><div class="pct"><span data-count-to="64" data-count-dur="900" data-at="360">0</span>%</div></div>
+      <div class="frict-row" data-anim="rise" data-at="600" data-dur="480"><div class="rank">02</div><div class="label">Timezone drag on decisions</div><div class="pct"><span data-count-to="57" data-count-dur="900" data-at="600">0</span>%</div></div>
+      <div class="frict-row" data-anim="rise" data-at="840" data-dur="480"><div class="rank">03</div><div class="label">Weak async writing culture</div><div class="pct"><span data-count-to="49" data-count-dur="900" data-at="840">0</span>%</div></div>
+      <div class="frict-row" data-anim="rise" data-at="1080" data-dur="480"><div class="rank">04</div><div class="label">Onboarding new hires remotely</div><div class="pct"><span data-count-to="42" data-count-dur="900" data-at="1080">0</span>%</div></div>
+    </div>
+  </section>
+
+  <!-- ============ SCENE 6 · CLOSING (3.6s) ============ -->
+  <section class="scene s-close" data-dur="3600">
+    <div class="tag-strip"><span class="dot"></span> The Takeaway</div>
+    <h2>
+      <span data-anim="rise-lg" data-at="120" data-dur="620">Flexibility isn't</span><br>
+      <span data-anim="rise-lg" data-at="300" data-dur="620">the perk. It's the</span><br>
+      <span class="em" data-anim="wipe" data-at="620" data-dur="680">operating system.</span>
+    </h2>
+    <div class="sign" data-anim="fade" data-at="1200" data-dur="700"><span class="bar"></span> State of Remote Work · 2026</div>
+  </section>
+
+  <div class="timecode" id="timecode">0:00 / 0:00</div>
+</div></div>
+
+<script>
+/* ============================================================================
+   TIMELINE ENGINE — the video contract (mirror of the slides' goToSlide).
+   One master clock T drives Web-Animations objects + counters as a pure
+   function of time, so seek / reverse / speed are all frame-accurate.
+   Exposes window.videoDirector for the visualizer's transport bar.
+   ========================================================================== */
+(function () {
+  const stage = document.querySelector('.stage');
+  function fit(){ const s = Math.min(innerWidth/1920, innerHeight/1080); if (stage) stage.style.setProperty('--vizscale', s); }
+  addEventListener('resize', fit); fit();
+
+  const EASE = 'cubic-bezier(.2,.8,.2,1)';
+  const OVERSHOOT = 'cubic-bezier(.34,1.56,.64,1)';
+  const PRESETS = {
+    fade:      [{ opacity: 0 }, { opacity: 1 }],
+    rise:      [{ opacity: 0, transform: 'translateY(3cqh)' }, { opacity: 1, transform: 'translateY(0)' }],
+    'rise-lg': [{ opacity: 0, transform: 'translateY(7cqh)' }, { opacity: 1, transform: 'none' }],
+    fall:      [{ opacity: 0, transform: 'translateY(-3cqh)' }, { opacity: 1, transform: 'none' }],
+    zoom:      [{ opacity: 0, transform: 'scale(1.12)' }, { opacity: 1, transform: 'scale(1)' }],
+    pop:       [{ opacity: 0, transform: 'scale(.72)' }, { opacity: 1, transform: 'scale(1)' }],
+    wipe:      [{ clipPath: 'inset(0 100% 0 0)', opacity: 1 }, { clipPath: 'inset(0 0 0 0)', opacity: 1 }],
+    'wipe-up': [{ clipPath: 'inset(100% 0 0 0)' }, { clipPath: 'inset(0 0 0 0)' }],
+    'blur-in': [{ opacity: 0, filter: 'blur(1.4cqh)' }, { opacity: 1, filter: 'blur(0)' }],
+  };
+  const clamp = (v, a, b) => Math.max(a, Math.min(v, b));
+
+  // --- lay scenes out on a sequential timeline (data-start overrides) --------
+  const scenes = Array.from(document.querySelectorAll('.scene'));
+  const startOf = new Map();
+  let acc = 0;
+  const layout = scenes.map((el) => {
+    const start = el.dataset.start != null ? +el.dataset.start : acc;
+    const dur = +el.dataset.dur || 3000;
+    acc = start + dur; startOf.set(el, start);
+    return { el, start, dur, end: start + dur };
+  });
+  const total = acc || 1;
+  const FADE = 200; // per-scene fade envelope (ms)
+
+  // --- build paused Web-Animations for every [data-anim] element -------------
+  const anims = Array.from(document.querySelectorAll('[data-anim]')).map((el) => {
+    const kf = PRESETS[el.dataset.anim] || PRESETS.fade;
+    const ease = el.dataset.ease || (el.dataset.anim === 'pop' ? OVERSHOOT : EASE);
+    const a = el.animate(kf, { duration: +el.dataset.dur || 600, easing: ease, fill: 'both' });
+    a.pause();
+    return { a, s0: startOf.get(el.closest('.scene')) || 0, at: +el.dataset.at || 0, dur: +el.dataset.dur || 600 };
+  });
+
+  // --- counters: number interpolation as a function of time ------------------
+  const easeOut = (p) => 1 - Math.pow(1 - p, 3);
+  const counters = Array.from(document.querySelectorAll('[data-count-to]')).map((el) => ({
+    el, s0: startOf.get(el.closest('.scene')) || 0,
+    from: parseFloat(el.dataset.countFrom || '0'), to: parseFloat(el.dataset.countTo),
+    at: +el.dataset.at || 0, dur: +el.dataset.countDur || 900,
+    dec: +el.dataset.countDec || 0, suffix: el.dataset.countSuffix || '', prefix: el.dataset.countPrefix || '',
+  }));
+
+  const tc = document.getElementById('timecode');
+  const fmt = (ms) => { const s = Math.max(0, Math.round(ms / 1000)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+
+  // --- state + render --------------------------------------------------------
+  let T = 0, playing = false, rate = 1, loop = false, raf = null, last = null;
+  const tickCbs = [];
+  function emit() { const st = { t: T, duration: total, playing, rate }; for (const f of tickCbs) f(st); }
+
+  function renderAt(t) {
+    T = clamp(t, 0, total);
+    for (const sc of layout) {
+      let op = 0;
+      if (T >= sc.start && T < sc.end) op = Math.max(0, Math.min((T - sc.start) / FADE, (sc.end - T) / FADE, 1));
+      else if (T >= total && sc === layout[layout.length - 1]) op = 1; // hold last frame at the very end
+      sc.el.style.opacity = op;
+      sc.el.style.visibility = op > 0 ? 'visible' : 'hidden';
+    }
+    for (const x of anims) x.a.currentTime = clamp(T - (x.s0 + x.at), 0, x.dur);
+    for (const c of counters) {
+      const p = clamp((T - (c.s0 + c.at)) / c.dur, 0, 1);
+      const v = c.from + (c.to - c.from) * easeOut(p);
+      c.el.textContent = c.prefix + v.toFixed(c.dec) + c.suffix;
+    }
+    if (tc) tc.textContent = fmt(T) + ' / ' + fmt(total);
+    emit();
+  }
+
+  function frame(ts) {
+    if (last == null) last = ts;
+    let nt = T + (ts - last) * rate; last = ts;
+    if (nt >= total) { if (loop) nt %= total; else { nt = total; playing = false; } }
+    else if (nt < 0) { if (loop) nt = total + (nt % total); else nt = 0; }
+    renderAt(nt);
+    if (playing) raf = requestAnimationFrame(frame); else { last = null; }
+  }
+  function play() { if (playing) return; if (!loop && T >= total) T = 0; playing = true; last = null; raf = requestAnimationFrame(frame); emit(); }
+  function pause() { playing = false; if (raf) cancelAnimationFrame(raf); raf = null; last = null; emit(); }
+
+  window.videoDirector = {
+    duration: () => total, currentTime: () => T,
+    seek: (ms) => { renderAt(ms); last = null; },
+    play, pause, toggle: () => (playing ? pause() : play()), isPlaying: () => playing,
+    setRate: (r) => { rate = r; emit(); }, rate: () => rate,
+    setLoop: (b) => { loop = !!b; },
+    onTick: (cb) => { tickCbs.push(cb); cb({ t: T, duration: total, playing, rate }); },
+  };
+
+  // standalone keyboard transport (the editor drives its own controls)
+  addEventListener('keydown', (e) => {
+    if (e.key === ' ') { e.preventDefault(); window.videoDirector.toggle(); }
+    else if (e.key === 'ArrowRight') window.videoDirector.seek(T + 1000);
+    else if (e.key === 'ArrowLeft') window.videoDirector.seek(T - 1000);
+  });
+
+  renderAt(0);
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) renderAt(Math.min(1400, layout[0].dur - 1));
+  else play();
+})();
+</script>
+</body>
+</html>

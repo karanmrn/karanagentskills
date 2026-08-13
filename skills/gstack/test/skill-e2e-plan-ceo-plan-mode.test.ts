@@ -47,7 +47,12 @@ describeE2E('plan-ceo-review plan-mode smoke (gate)', () => {
     const obs = await runPlanSkillObservation({
       skillName: 'plan-ceo-review',
       inPlanMode: true,
-      timeoutMs: 300_000,
+      // 420s, not 300s: measured 2026-08-11, a clean isolated pass took
+      // 295.7s (80s on a quiet main run) — 4s under the old budget — and the
+      // same run timed out at ~308s three times under concurrent eval load.
+      // Same runner-contention class as review-dashboard-via/retro-base-
+      // branch; headroom instead of a budget-edge flake in the gate lane.
+      timeoutMs: 420_000,
       env: { QUESTION_TUNING: 'false', EXPLAIN_LEVEL: 'default' },
     });
 
@@ -72,5 +77,5 @@ describeE2E('plan-ceo-review plan-mode smoke (gate)', () => {
       );
     }
     assertReportAtBottomIfPlanWritten(obs);
-  }, 360_000);
+  }, 480_000);
 });

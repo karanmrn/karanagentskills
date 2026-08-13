@@ -393,9 +393,15 @@ _HOOK_INSTALLED="no"
 # committed hook and write a machine-local wrapper into the working tree.
 _HOOKS_DIR=$(git rev-parse --git-path hooks 2>/dev/null || echo "")
 _GIT_DIR=$(git rev-parse --absolute-git-dir 2>/dev/null || echo "")
+# Linked worktrees: --absolute-git-dir is .git/worktrees/<name> but hooks
+# resolve to the COMMON .git/hooks, so match against the common dir too or
+# every Conductor worktree false-negatives as a "custom hooks path". The
+# /nonexistent fallback keeps the case pattern from collapsing to "/*"
+# (match-everything) when resolution fails.
+_GIT_COMMON=$(cd "$(git rev-parse --git-common-dir 2>/dev/null || echo /nonexistent)" 2>/dev/null && pwd || echo /nonexistent)
 _HOOKS_IN_GIT_DIR="no"
 case "$_HOOKS_DIR" in
-  "$_GIT_DIR"/*|hooks|.git/hooks) _HOOKS_IN_GIT_DIR="yes" ;;
+  "$_GIT_DIR"/*|"$_GIT_COMMON"/*|hooks|.git/hooks) _HOOKS_IN_GIT_DIR="yes" ;;
 esac
 _PREPUSH_PROMPTED=$([ -f "${GSTACK_HOME:-$HOME/.gstack}/.redact-prepush-prompted" ] && echo "yes" || echo "no")
 echo "REDACT_PREPUSH: $_REDACT_PREPUSH"

@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Halo — Ambient AI Notetaker · Launch Keynote</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #01020a; }
+
+  :root {
+    --bg: #050814;
+    --ink: #e8ecff;
+    --ink-dim: #9aa4d6;
+    --ink-faint: #5b648f;
+    --mint: #6df1c8;
+    --violet: #a06bff;
+    --line: rgba(160, 175, 255, 0.10);
+    --line-2: rgba(160, 175, 255, 0.18);
+    --card: rgba(140, 155, 235, 0.045);
+    --card-border: rgba(160, 175, 255, 0.14);
+  }
+
+  .viewport { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+  .stage {
+    position: relative; width: 1920px; height: 1080px; flex: none; overflow: hidden;
+    container-type: size; transform: scale(var(--vizscale, 1)); transform-origin: center center;
+    background: var(--bg); color: var(--ink);
+    font-family: "Sora", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Ambient atmosphere shared across slides */
+  .stage::before {
+    content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 4.4cqw 4.4cqw, 4.4cqw 4.4cqw;
+    mask-image: radial-gradient(120% 120% at 50% 40%, #000 40%, transparent 92%);
+    -webkit-mask-image: radial-gradient(120% 120% at 50% 40%, #000 40%, transparent 92%);
+  }
+
+  .glow {
+    position: absolute; border-radius: 50%; filter: blur(70px);
+    opacity: 0.5; z-index: 0; pointer-events: none; will-change: transform;
+  }
+  .glow.mint { width: 46cqw; height: 46cqw; background: radial-gradient(circle, rgba(109,241,200,0.42), transparent 68%); }
+  .glow.violet { width: 52cqw; height: 52cqw; background: radial-gradient(circle, rgba(160,107,255,0.45), transparent 68%); }
+  .g-a { top: -14cqh; left: -8cqw; animation: drift1 22s ease-in-out infinite; }
+  .g-b { bottom: -18cqh; right: -10cqw; animation: drift2 26s ease-in-out infinite; }
+
+  @keyframes drift1 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(6cqw,4cqh) scale(1.12); } }
+  @keyframes drift2 { 0%,100% { transform: translate(0,0) scale(1.05); } 50% { transform: translate(-5cqw,-5cqh) scale(0.94); } }
+
+  .slide {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .5s ease;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 8cqh 9cqw; z-index: 1;
+  }
+  .slide.active { opacity: 1; visibility: visible; pointer-events: auto; }
+
+  /* Entrance animation */
+  .rise { opacity: 0; transform: translateY(2.4cqh); }
+  .slide.active .rise { animation: rise .8s cubic-bezier(.2,.7,.2,1) forwards; }
+  .slide.active .d1 { animation-delay: .06s; }
+  .slide.active .d2 { animation-delay: .16s; }
+  .slide.active .d3 { animation-delay: .26s; }
+  .slide.active .d4 { animation-delay: .36s; }
+  .slide.active .d5 { animation-delay: .46s; }
+  .slide.active .d6 { animation-delay: .56s; }
+  @keyframes rise { to { opacity: 1; transform: translateY(0); } }
+
+  /* Typography helpers */
+  .display { font-family: "Space Grotesk", sans-serif; font-weight: 700; line-height: 0.98; letter-spacing: -0.02em; }
+  .eyebrow {
+    font-family: "Space Grotesk", sans-serif; font-weight: 600;
+    font-size: 1.15cqw; letter-spacing: 0.42em; text-transform: uppercase; color: var(--mint);
+    display: inline-flex; align-items: center; gap: 1cqw;
+  }
+  .eyebrow::before { content: ""; width: 3.2cqw; height: 1px; background: linear-gradient(90deg, var(--mint), transparent); }
+  .grad {
+    background: linear-gradient(104deg, #ffffff 0%, var(--mint) 34%, #bfa5ff 62%, var(--violet) 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .lead { color: var(--ink-dim); font-weight: 300; line-height: 1.5; }
+
+  .brandmark { position: absolute; top: 6cqh; left: 9cqw; z-index: 2; display: flex; align-items: center; gap: 0.9cqw; }
+  .brandmark .dot { width: 1.5cqw; height: 1.5cqw; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fff, var(--mint) 45%, var(--violet)); box-shadow: 0 0 2.2cqw rgba(109,241,200,0.6); }
+  .brandmark .name { font-family: "Space Grotesk", sans-serif; font-weight: 600; letter-spacing: 0.32em; font-size: 1.15cqw; text-transform: uppercase; }
+  .pagetag { position: absolute; top: 6cqh; right: 9cqw; z-index: 2; font-family: "Space Grotesk", sans-serif;
+    font-size: 1cqw; letter-spacing: 0.3em; text-transform: uppercase; color: var(--ink-faint); }
+
+  .counter {
+    position: absolute; bottom: 5cqh; right: 9cqw; z-index: 3;
+    font-family: "Space Grotesk", sans-serif; font-size: 1.05cqw; letter-spacing: 0.28em;
+    color: var(--ink-faint);
+  }
+  .footline { position: absolute; bottom: 5cqh; left: 9cqw; z-index: 3;
+    font-family: "Space Grotesk", sans-serif; font-size: 1.05cqw; letter-spacing: 0.28em; color: var(--ink-faint); }
+
+  /* ---- Slide 1: Hero ---- */
+  .hero-eyebrow { margin-bottom: 3.4cqh; }
+  .hero-title { font-size: 11cqw; margin-bottom: 3.2cqh; }
+  .hero-sub { font-size: 2cqw; max-width: 44ch; margin-bottom: 5cqh; }
+  .hero-meta { display: flex; gap: 3cqw; align-items: center; }
+  .chip {
+    font-family: "Space Grotesk", sans-serif; font-size: 1.05cqw; letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--ink); padding: 0.9cqh 1.6cqw; border: 1px solid var(--card-border); border-radius: 100px;
+    background: var(--card);
+  }
+  .chip.accent { border-color: rgba(109,241,200,0.4); color: var(--mint); }
+
+  /* ---- Slide 2: The Problem ---- */
+  .two-col { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 6cqw; align-items: center; }
+  .kicker-title { font-size: 5.4cqw; margin-bottom: 3cqh; }
+  .prob-body { font-size: 1.75cqw; max-width: 34ch; }
+  .prob-body strong { color: var(--ink); font-weight: 500; }
+  .cost-panel { border: 1px solid var(--line-2); border-radius: 1.6cqw; padding: 4cqh 3cqw; background: var(--card); }
+  .cost-row { display: flex; justify-content: space-between; align-items: baseline; padding: 2.4cqh 0; border-bottom: 1px solid var(--line); }
+  .cost-row:last-child { border-bottom: 0; }
+  .cost-num { font-family: "Space Grotesk", sans-serif; font-weight: 700; font-size: 4cqw; color: var(--ink); }
+  .cost-num em { font-style: normal; color: var(--mint); }
+  .cost-lbl { font-size: 1.3cqw; color: var(--ink-dim); max-width: 20ch; text-align: right; line-height: 1.35; }
+
+  /* ---- Slide 3: Features ---- */
+  .sec-head { margin-bottom: 5cqh; }
+  .sec-head h2 { font-size: 5cqw; }
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.4cqw; }
+  .card {
+    border: 1px solid var(--card-border); border-radius: 1.4cqw; padding: 4cqh 2.4cqw 4.4cqh;
+    background: linear-gradient(180deg, rgba(140,155,235,0.06), rgba(140,155,235,0.02));
+    position: relative; overflow: hidden;
+  }
+  .card::after { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--mint), var(--violet), transparent); opacity: 0.7; }
+  .card .ico { width: 5cqw; height: 5cqw; border-radius: 1cqw; display: flex; align-items: center; justify-content: center;
+    margin-bottom: 3.2cqh; border: 1px solid var(--card-border); background: rgba(5,8,20,0.6); }
+  .card .ico svg { width: 2.6cqw; height: 2.6cqw; }
+  .card h3 { font-family: "Space Grotesk", sans-serif; font-weight: 600; font-size: 2.2cqw; margin-bottom: 1.8cqh; letter-spacing: -0.01em; }
+  .card p { font-size: 1.3cqw; color: var(--ink-dim); line-height: 1.55; font-weight: 300; }
+  .card .num { position: absolute; top: 3cqh; right: 2.4cqw; font-family: "Space Grotesk", sans-serif;
+    font-size: 1.1cqw; letter-spacing: 0.3em; color: var(--ink-faint); }
+
+  /* ---- Slide 4: Big stat ---- */
+  .stat-wrap { text-align: center; align-items: center; }
+  .stat-eyebrow { margin-bottom: 4cqh; }
+  .stat-big { font-size: 20cqw; line-height: 0.86; }
+  .stat-sub { font-size: 2.2cqw; margin-top: 3cqh; max-width: 40ch; }
+  .stat-row { display: flex; gap: 6cqw; margin-top: 6cqh; justify-content: center; }
+  .stat-mini .n { font-family: "Space Grotesk", sans-serif; font-weight: 700; font-size: 3.4cqw; color: var(--ink); }
+  .stat-mini .n span { color: var(--mint); }
+  .stat-mini .l { font-size: 1.15cqw; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-faint); margin-top: 0.8cqh; }
+
+  /* ---- Slide 5: How it works ---- */
+  .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2cqw; position: relative; margin-top: 2cqh; }
+  .steps::before { content: ""; position: absolute; top: 2.6cqw; left: 4%; right: 4%; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--line-2) 15%, var(--line-2) 85%, transparent); }
+  .step { position: relative; }
+  .step .node { width: 5.2cqw; height: 5.2cqw; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-family: "Space Grotesk", sans-serif; font-weight: 700; font-size: 2cqw; margin-bottom: 3cqh;
+    background: var(--bg); border: 1px solid var(--card-border); color: var(--mint); position: relative; z-index: 1; }
+  .step:nth-child(2) .node { color: var(--violet); }
+  .step h4 { font-family: "Space Grotesk", sans-serif; font-weight: 600; font-size: 1.9cqw; margin-bottom: 1.4cqh; }
+  .step p { font-size: 1.2cqw; color: var(--ink-dim); line-height: 1.5; font-weight: 300; max-width: 22ch; }
+
+  /* ---- Slide 6: CTA ---- */
+  .cta { text-align: center; align-items: center; }
+  .cta-title { font-size: 9cqw; margin-bottom: 3.2cqh; }
+  .cta-sub { font-size: 2cqw; max-width: 38ch; margin-bottom: 5.4cqh; }
+  .cta-btn {
+    font-family: "Space Grotesk", sans-serif; font-weight: 600; font-size: 1.5cqw; letter-spacing: 0.14em; text-transform: uppercase;
+    padding: 2cqh 4cqw; border-radius: 100px; color: #050814;
+    background: linear-gradient(100deg, var(--mint), #bfa5ff 55%, var(--violet));
+    box-shadow: 0 0 5cqw rgba(109,241,200,0.35), 0 0 8cqw rgba(160,107,255,0.25);
+  }
+  .cta-foot { margin-top: 5cqh; font-family: "Space Grotesk", sans-serif; font-size: 1.15cqw; letter-spacing: 0.3em;
+    text-transform: uppercase; color: var(--ink-faint); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .glow { animation: none !important; }
+    .rise { opacity: 1 !important; transform: none !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="viewport"><div class="stage">
+
+  <!-- ============ SLIDE 1 · HERO ============ -->
+  <section class="slide active">
+    <div class="glow violet g-a"></div>
+    <div class="glow mint g-b"></div>
+    <div class="brandmark"><span class="dot"></span><span class="name">Halo</span></div>
+    <div class="pagetag">Keynote · 2026</div>
+    <div class="eyebrow hero-eyebrow rise d1">Introducing Halo</div>
+    <h1 class="display hero-title rise d2">The ambient<br><span class="grad">AI notetaker.</span></h1>
+    <p class="lead hero-sub rise d3">Halo listens in the background, understands the room, and hands you the notes, decisions, and follow-ups before the meeting even ends.</p>
+    <div class="hero-meta rise d4">
+      <span class="chip accent">Always on · Never intrusive</span>
+      <span class="chip">On-device by default</span>
+    </div>
+    <div class="footline">Halo, Inc.</div>
+  </section>
+
+  <!-- ============ SLIDE 2 · THE PROBLEM ============ -->
+  <section class="slide">
+    <div class="glow violet g-a" style="opacity:.32"></div>
+    <div class="brandmark"><span class="dot"></span><span class="name">Halo</span></div>
+    <div class="pagetag">The Problem</div>
+    <div class="two-col">
+      <div>
+        <div class="eyebrow rise d1">Meetings are broken</div>
+        <h2 class="display kicker-title rise d2" style="margin-top:2.6cqh;">You were<br>in the room.<br><span class="grad">You missed it anyway.</span></h2>
+        <p class="lead prob-body rise d3">Half your attention goes to typing, the other half to nodding along. The <strong>real</strong> decisions slip through, and the write-up never happens.</p>
+      </div>
+      <div class="cost-panel rise d4">
+        <div class="cost-row">
+          <div class="cost-num"><em>31</em>h</div>
+          <div class="cost-lbl">lost per person, per month, in avoidable meetings</div>
+        </div>
+        <div class="cost-row">
+          <div class="cost-num"><em>73</em>%</div>
+          <div class="cost-lbl">of professionals multitask instead of listening</div>
+        </div>
+        <div class="cost-row">
+          <div class="cost-num"><em>1 in 4</em></div>
+          <div class="cost-lbl">action items are forgotten before the next standup</div>
+        </div>
+      </div>
+    </div>
+    <div class="footline">Halo, Inc.</div>
+  </section>
+
+  <!-- ============ SLIDE 3 · FEATURES ============ -->
+  <section class="slide">
+    <div class="glow mint g-b" style="opacity:.3"></div>
+    <div class="brandmark"><span class="dot"></span><span class="name">Halo</span></div>
+    <div class="pagetag">What it does</div>
+    <div class="sec-head rise d1">
+      <div class="eyebrow">Three superpowers</div>
+      <h2 class="display" style="margin-top:2.4cqh;">Notes that <span class="grad">think ahead.</span></h2>
+    </div>
+    <div class="cards">
+      <div class="card rise d2">
+        <span class="num">01</span>
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#6df1c8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v4"/></svg></div>
+        <h3>Ambient capture</h3>
+        <p>No bots joining calls, no "record" button. Halo runs quietly in the background across meetings, calls, and hallway chats.</p>
+      </div>
+      <div class="card rise d3">
+        <span class="num">02</span>
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#a06bff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><circle cx="12" cy="12" r="4"/><path d="M12 8v4l2.5 1.5"/></svg></div>
+        <h3>Decision engine</h3>
+        <p>It doesn't just transcribe. Halo surfaces decisions, owners, and deadlines, and drafts the follow-up email while you're still talking.</p>
+      </div>
+      <div class="card rise d4">
+        <span class="num">03</span>
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#6df1c8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/><path d="M8 4v5M16 4v5"/><path d="M8 14l2.5 2.5L16 12"/></svg></div>
+        <h3>Private by design</h3>
+        <p>Speech is processed on-device by default. Your conversations never leave your machine unless you say so, end to end encrypted.</p>
+      </div>
+    </div>
+    <div class="footline">Halo, Inc.</div>
+  </section>
+
+  <!-- ============ SLIDE 4 · BIG STAT ============ -->
+  <section class="slide stat-wrap">
+    <div class="glow violet g-a"></div>
+    <div class="glow mint g-b"></div>
+    <div class="brandmark"><span class="dot"></span><span class="name">Halo</span></div>
+    <div class="pagetag">The Capability</div>
+    <div class="eyebrow stat-eyebrow rise d1" style="justify-content:center;">Real-time, on device</div>
+    <div class="display stat-big grad rise d2">200ms</div>
+    <p class="lead stat-sub rise d3">From spoken word to structured note. Halo keeps up with the fastest room, in nine languages, with zero cloud round-trip.</p>
+    <div class="stat-row rise d4">
+      <div class="stat-mini"><div class="n">98.6<span>%</span></div><div class="l">Transcript accuracy</div></div>
+      <div class="stat-mini"><div class="n">9</div><div class="l">Languages, live</div></div>
+      <div class="stat-mini"><div class="n">0<span>ms</span></div><div class="l">Cloud round-trip</div></div>
+    </div>
+    <div class="footline">Halo, Inc.</div>
+  </section>
+
+  <!-- ============ SLIDE 5 · HOW IT WORKS ============ -->
+  <section class="slide">
+    <div class="glow mint g-b" style="opacity:.28"></div>
+    <div class="brandmark"><span class="dot"></span><span class="name">Halo</span></div>
+    <div class="pagetag">How it works</div>
+    <div class="sec-head rise d1">
+      <div class="eyebrow">Four quiet steps</div>
+      <h2 class="display" style="margin-top:2.4cqh;">From noise to <span class="grad">clarity.</span></h2>
+    </div>
+    <div class="steps">
+      <div class="step rise d2">
+        <div class="node">1</div>
+        <h4>Listen</h4>
+        <p>Halo senses when a conversation starts and captures it locally, no setup, no join links.</p>
+      </div>
+      <div class="step rise d3">
+        <div class="node">2</div>
+        <h4>Understand</h4>
+        <p>On-device models separate speakers, follow the thread, and read the intent behind the words.</p>
+      </div>
+      <div class="step rise d4">
+        <div class="node">3</div>
+        <h4>Structure</h4>
+        <p>Decisions, action items, and owners are extracted into a clean, shareable brief.</p>
+      </div>
+      <div class="step rise d5">
+        <div class="node">4</div>
+        <h4>Deliver</h4>
+        <p>The recap lands in your inbox and tools before you've left the room, drafts included.</p>
+      </div>
+    </div>
+    <div class="footline">Halo, Inc.</div>
+  </section>
+
+  <!-- ============ SLIDE 6 · CTA ============ -->
+  <section class="slide cta">
+    <div class="glow violet g-a"></div>
+    <div class="glow mint g-b"></div>
+    <div class="brandmark"><span class="dot"></span><span class="name">Halo</span></div>
+    <div class="pagetag">Get early access</div>
+    <div class="eyebrow rise d1" style="justify-content:center;">The quiet revolution in notes</div>
+    <h2 class="display cta-title rise d2" style="margin-top:3cqh;">Stop taking notes.<br><span class="grad">Start being present.</span></h2>
+    <p class="lead cta-sub rise d3">Join the waitlist and be first in line when Halo opens to the world.</p>
+    <div class="rise d4"><span class="cta-btn">Early access opens this fall</span></div>
+    <div class="cta-foot rise d5">halo.ai/early &nbsp;·&nbsp; #MeetHalo</div>
+    <div class="footline">Halo, Inc.</div>
+  </section>
+
+  <div class="counter" id="counter"></div>
+</div></div>
+
+<script>
+  const stageEl = document.querySelector('.stage');
+  function fitStage(){ const s = Math.min(innerWidth/1920, innerHeight/1080); if(stageEl) stageEl.style.setProperty('--vizscale', s); }
+  addEventListener('resize', fitStage); fitStage();
+  let cur = 0;
+  const slides = () => Array.from(document.querySelectorAll('.slide'));
+  const counter = document.getElementById('counter');
+  function render() {
+    const all = slides();
+    all.forEach((s, n) => s.classList.toggle('active', n === cur));
+    if (counter) counter.textContent = (cur + 1) + ' / ' + all.length;
+  }
+  window.goToSlide = function (i) {
+    const all = slides();
+    cur = Math.max(0, Math.min(i, all.length - 1));
+    render();
+  };
+  addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') goToSlide(cur + 1);
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') goToSlide(cur - 1);
+  });
+  const init = slides().findIndex((s) => s.classList.contains('active'));
+  cur = init < 0 ? 0 : init;
+  render();
+</script>
+</body>
+</html>

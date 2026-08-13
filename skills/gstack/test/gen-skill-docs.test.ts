@@ -3244,6 +3244,66 @@ describe('EXIT PLAN MODE GATE placement', () => {
   });
 });
 
+describe('scope-gate exceptions drift-guard', () => {
+  // The plan-mode auto-select-B exceptions block is hand-duplicated in the
+  // plan-eng-review and plan-design-review templates (matching the gate
+  // around it, which predates this block). The two copies must stay
+  // byte-identical modulo exactly two known variant slots:
+  //   1. the plan-mode bullet's action tail (Design Doc Check vs pre-review
+  //      audit + mockups),
+  //   2. the named-target vocabulary ("a path, a doc" vs "a path, a page, a doc").
+  // A future edit to one copy that silently misses the other fails here
+  // instead of drifting. The real fix (shared {{SCOPE_GATE}} resolver) is a
+  // filed TODO — this guard is the stopgap that makes the duplication safe.
+  const START_MARKER = '**Exceptions — check in this order, BEFORE asking:**';
+  const END_MARKER = 'in any mode — it is a hard STOP.';
+
+  function extractExceptionsBlock(skill: string): string {
+    const md = fs.readFileSync(path.join(ROOT, skill, 'SKILL.md'), 'utf-8');
+    const start = md.indexOf(START_MARKER);
+    expect(start, `${skill}/SKILL.md: exceptions block start marker present`).toBeGreaterThan(-1);
+    const end = md.indexOf(END_MARKER, start);
+    expect(end, `${skill}/SKILL.md: exceptions block end marker present`).toBeGreaterThan(start);
+    return md.slice(start, end + END_MARKER.length);
+  }
+
+  const normalizeVariantSlots = (block: string) =>
+    block
+      .replace('Then run the Design Doc Check and Step 0 against that plan.', '<ACTION_TAIL>')
+      .replace('Then run the pre-review audit, mockups, and Step 0 against that plan.', '<ACTION_TAIL>')
+      .replace('a path, a page, a doc they pasted,', 'a path, a doc they pasted,');
+
+  test('eng and design exceptions blocks are identical modulo the two variant slots', () => {
+    const eng = normalizeVariantSlots(extractExceptionsBlock('plan-eng-review'));
+    const design = normalizeVariantSlots(extractExceptionsBlock('plan-design-review'));
+    expect(eng).toBe(design);
+    // The action tail must actually have been normalized in both (guards
+    // against a rewording that bypasses the normalizer and vacuously passes).
+    expect(eng).toContain('<ACTION_TAIL>');
+  });
+
+  test('exceptions block carries the announcement string the PTY detectors pin', () => {
+    for (const skill of ['plan-eng-review', 'plan-design-review']) {
+      const block = extractExceptionsBlock(skill);
+      expect(block, `${skill}: verbatim announcement`).toContain(
+        'Scope gate: plan mode — auto-selected B (reviewing <target>).',
+      );
+    }
+  });
+
+  test('gate menu carries the question strings the PTY question detector pins', () => {
+    // isScopeGateQuestionVisible (claude-pty-runner.ts) anchors on the
+    // question text + option A's body. If the menu is reworded without
+    // updating the detector, the paid smokes' must-stay-false assertions go
+    // vacuous — this free pin fails first.
+    for (const skill of ['plan-eng-review', 'plan-design-review']) {
+      const md = fs.readFileSync(path.join(ROOT, skill, 'SKILL.md'), 'utf-8');
+      expect(md, `${skill}: gate question text`).toContain('What should I review?');
+      expect(md, `${skill}: option A body text`).toContain('The current branch diff');
+    }
+  });
+});
+
 describe('GSTACK REVIEW REPORT mandatory unresolved-decisions status', () => {
   // Report text rides in PLAN_FILE_REVIEW_REPORT → every report consumer gets it.
   // devex-review is a report consumer but NOT a gate consumer, so the two target

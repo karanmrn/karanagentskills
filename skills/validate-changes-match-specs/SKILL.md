@@ -253,7 +253,7 @@ If the user chooses to commit:
 2. Ask for or propose a concise commit message if one is not already clear.
 3. Stage only the intended files.
 4. Commit non-interactively.
-5. Include `Co-Authored-By: Oz <oz-agent@warp.dev>` in the commit message.
+5. Include `Co-Authored-By: Warp Agent <agent@warp.dev>` in the commit message (never in a PR description), and do not add it again if the commit already has one.
 
 If the user chooses to push, push the current branch to `origin` after the commit succeeds. If commit or push fails, report the failure and do not retry destructively.
 

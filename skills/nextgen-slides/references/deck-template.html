@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Deck</title>
+<style>
+  /* ---- self-scaling 1920×1080 stage (see references/stage.css) ---- */
+  :root { --ink: #f4f1ea; --bg1: #0b1020; --bg2: #131a33; --accent: #ffcc4d; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #06070a; }
+  .viewport { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+  .stage { position: relative; width: 1920px; height: 1080px; flex: none; overflow: hidden;
+           container-type: size; transform: scale(var(--vizscale, 1)); transform-origin: center center; }
+  .slide {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .5s ease;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .slide.active { opacity: 1; visibility: visible; pointer-events: auto; }
+
+  /* ---- deck look (swap for a committed style — see style-presets.md) ---- */
+  .slide {
+    padding: clamp(48px, 9cqh, 130px) clamp(56px, 8cqw, 170px);
+    color: var(--ink); font-family: "Georgia", serif;
+    background: radial-gradient(120% 120% at 20% 0%, var(--bg2), var(--bg1));
+  }
+  h1 { font-size: clamp(48px, 8cqw, 132px); line-height: 1.04; letter-spacing: -1px; }
+  h2 { font-size: clamp(34px, 5.4cqw, 84px); margin-bottom: clamp(20px, 3cqh, 44px); }
+  p, li { font-size: clamp(19px, 2.6cqw, 40px); line-height: 1.5; max-width: 60ch; }
+  ul { margin-top: clamp(16px, 2.4cqh, 28px); padding-left: 1.4em;
+       display: flex; flex-direction: column; gap: clamp(10px, 1.6cqh, 20px); }
+  .kicker { font-size: clamp(14px, 1.5cqw, 28px); letter-spacing: .35em; text-transform: uppercase;
+            color: var(--accent); margin-bottom: clamp(16px, 2.4cqh, 30px); }
+  .subtitle { margin-top: clamp(16px, 2.4cqh, 34px); opacity: .85; }
+
+  /* live page counter — JS keeps it in sync; never numbered by hand */
+  .counter { position: fixed; right: clamp(28px, 3cqw, 60px); bottom: clamp(24px, 3cqh, 48px); z-index: 2;
+             font-family: "Georgia", serif; font-size: clamp(14px, 1.3cqw, 24px); color: var(--ink);
+             opacity: .5; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+  <div class="viewport"><div class="stage">
+
+    <!-- SLIDE 1 -->
+    <section class="slide active">
+      <div class="kicker">Presentation</div>
+      <h1>Deck Title</h1>
+      <p class="subtitle">A one-line subtitle that frames the talk.</p>
+    </section>
+
+    <!-- SLIDE 2 -->
+    <section class="slide">
+      <h2>A single idea</h2>
+      <ul>
+        <li>One point per line</li>
+        <li>Large, legible type</li>
+        <li>Room to breathe</li>
+      </ul>
+    </section>
+
+    <!-- SLIDE 3 -->
+    <section class="slide">
+      <h2>Closing</h2>
+      <p>Thanks — questions?</p>
+    </section>
+
+    <div class="counter" id="counter"></div>
+  </div></div>
+
+<script>
+  // ---- page swapping + live page count (exposes window.goToSlide) ----
+  const stageEl = document.querySelector('.stage');
+  function fitStage(){ const s = Math.min(innerWidth/1920, innerHeight/1080); if(stageEl) stageEl.style.setProperty('--vizscale', s); }
+  addEventListener('resize', fitStage); fitStage();
+  let cur = 0;
+  const slides = () => Array.from(document.querySelectorAll('.slide'));
+  const counter = document.getElementById('counter');
+  function render() {
+    const all = slides();
+    all.forEach((s, n) => s.classList.toggle('active', n === cur));
+    if (counter) counter.textContent = (cur + 1) + ' / ' + all.length;
+  }
+  window.goToSlide = function (i) {
+    const all = slides();
+    cur = Math.max(0, Math.min(i, all.length - 1));
+    render();
+  };
+  addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') goToSlide(cur + 1);
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') goToSlide(cur - 1);
+  });
+  // start on whichever slide is marked .active in the HTML
+  const init = slides().findIndex((s) => s.classList.contains('active'));
+  cur = init < 0 ? 0 : init;
+  render();
+</script>
+</body>
+</html>

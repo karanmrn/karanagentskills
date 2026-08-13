@@ -1,12 +1,29 @@
-# karanagentskills (private)
+# Karan's agent skills
 
-Karan Manoharan's complete agent-skill reference archive - every skill installed across the fleet (Claude Code, Codex, Grok, Kimi, OpenCode, Pi), plus the operating contracts.
+Private reference archive for skills installed across Claude Code, Codex, Grok, Kimi, OpenCode, Pi, and other compatible harnesses.
 
-Private archive for personal reading and study. Third-party skills remain the work of their original authors (many are marked `name--author--repo`); attributions to be added.
+Start here:
 
-- **[CATALOG.md](CATALOG.md)** - all skills, one line each. Start here.
-- **[skills/](skills/)** - full content of every skill.
-- **[AGENTS.md](AGENTS.md)** - the Firstmate fleet operating contract (from kunchenguid/firstmate).
-- **[CLAUDE.md](CLAUDE.md)** - global standing rules applied across all projects.
+- [Skill catalog](CATALOG.md) - every archived skill package, its purpose, and known upstream source.
+- [Installation guide](INSTALL.md) - install one skill, install the archive, update skills, and reload harnesses.
+- [Skill files](skills/) - complete skill packages. Each folder's `SKILL.md` is the source of truth.
+- [Fleet contract](AGENTS.md) - Firstmate operating rules.
+- [Global rules](CLAUDE.md) - standing instructions shared across projects.
 
-Custom skills authored for PUBMAXXING and the fleet include: `pubmax-code-review`, `spec-writing`, `review-improver`, `ideate`, `graphify`, `gnhf`, `caveman`, `compact`.
+## Maintenance
+
+The catalog is generated from skill frontmatter. Sync current global skills and rebuild it with:
+
+```bash
+python3 scripts/sync_catalog.py \
+  --source "$HOME/.agents/skills" \
+  --destination skills \
+  --lock "$HOME/.agents/.skill-lock.json" \
+  --catalog CATALOG.md
+```
+
+The sync is non-destructive. It updates installed skills and preserves archive-only entries. Git history remains the recovery path for every tracked change.
+
+Catalog count and installer count can differ. Catalog includes legacy packages, test fixtures, malformed source files, and nested packages kept for reference. `skills@latest` installs only packages that pass its current discovery and frontmatter validation.
+
+Third-party skills remain the work of their original authors. Use the Source column in [CATALOG.md](CATALOG.md) to inspect upstream ownership before installation.

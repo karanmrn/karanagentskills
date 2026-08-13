@@ -1,0 +1,68 @@
+/* stage.css — self-scaling fixed 1920×1080 stage.
+ *
+ * A deck is designed on a FIXED 1920×1080 canvas that scales uniformly to fit
+ * whatever it's shown in (a browser window, the visualizer's deck area, or a
+ * projector). The whole slide is always visible; a thin letterbox appears only
+ * when the container isn't 16:9 (none at all on a real 16:9 fullscreen). This
+ * renders correctly EVERYWHERE — standalone file, editor, and preview — because
+ * the scaling lives in the deck itself.
+ *
+ * Sizing uses container-query units (cqw/cqh) against the .stage, NOT vw/vh, so
+ * type references the fixed 1920 design width instead of the live window.
+ *   1cqw = 19.2px (1% of 1920)   1cqh = 10.8px (1% of 1080)
+ *
+ * Contract the visualizer relies on:
+ *   - each slide is an element with class  .slide  (fills the stage)
+ *   - the shown slide also has             .active
+ *   - slides toggle with visibility/opacity, never display:none
+ *   - the deck exposes window.goToSlide(index)  (0-based)
+ *   - a #counter element is filled by JS as "current / total"
+ */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: #0a0a0a;      /* the letterbox color */
+}
+
+/* Fills the window; centers the scaled stage. */
+.viewport {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* The fixed design canvas. JS sets --vizscale on it to fit the container.
+   container-type:size makes cqw/cqh resolve against this 1920×1080 box. */
+.stage {
+  position: relative;
+  width: 1920px; height: 1080px;
+  flex: none;                       /* never let the flex parent shrink it */
+  overflow: hidden;
+  container-type: size;
+  transform: scale(var(--vizscale, 1));
+  transform-origin: center center;
+}
+
+/* Each slide fills the stage and is stacked. */
+.slide {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity .5s ease;
+}
+.slide.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* fit() the stage to the window (paste into the deck's <script>):
+     const stageEl = document.querySelector('.stage');
+     function fitStage(){ stageEl.style.setProperty('--vizscale',
+       Math.min(innerWidth/1920, innerHeight/1080)); }
+     addEventListener('resize', fitStage); fitStage();
+*/
