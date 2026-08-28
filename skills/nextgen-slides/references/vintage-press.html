@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Daily Chronicle — The Night the Lights Went Out</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=PT+Serif+Caption&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #2b2620; }
+.viewport { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+.stage {
+  position: relative; width: 1920px; height: 1080px; flex: none; overflow: hidden;
+  container-type: size; transform: scale(var(--vizscale, 1)); transform-origin: center center;
+  background: #efe9dc;
+  color: #1a1712;
+  font-family: 'Lora', Georgia, serif;
+}
+
+/* ---- Paper texture: grain + foxing ---- */
+.stage::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 40;
+  background:
+    radial-gradient(circle at 12% 20%, rgba(120,90,40,.10), transparent 9%),
+    radial-gradient(circle at 82% 14%, rgba(120,80,30,.09), transparent 7%),
+    radial-gradient(circle at 68% 78%, rgba(110,70,25,.10), transparent 11%),
+    radial-gradient(circle at 30% 88%, rgba(120,90,40,.08), transparent 8%),
+    radial-gradient(circle at 92% 60%, rgba(120,80,30,.07), transparent 6%);
+  mix-blend-mode: multiply;
+}
+.stage::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 41;
+  opacity: .5; mix-blend-mode: multiply;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(60,45,20,.05) 0 1px, transparent 1px 3px),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.28'/%3E%3C/svg%3E");
+}
+/* vignette / aged edges */
+.stage .edges { position: absolute; inset: 0; pointer-events: none; z-index: 42;
+  box-shadow: inset 0 0 140px rgba(70,50,20,.28), inset 0 0 40px rgba(70,50,20,.18);
+}
+
+.slide {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .5s ease;
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 4.5cqh 5cqw; z-index: 5;
+}
+.slide.active { opacity: 1; visibility: visible; pointer-events: auto; }
+
+/* ===================== shared type ===================== */
+.rule { border: 0; border-top: 2px solid #1a1712; }
+.rule-thin { border: 0; border-top: 1px solid #6b5f47; }
+.rule-double { border: 0; border-top: 3px double #1a1712; }
+.red { color: #9c2b1f; }
+.masthead-name {
+  font-family: 'UnifrakturMaguntia', serif;
+  text-align: center; line-height: .9; color: #1a1712;
+}
+.smallcaps { font-family: 'PT Serif Caption', serif; text-transform: uppercase; letter-spacing: .18em; }
+.kicker { font-family:'PT Serif Caption', serif; text-transform: uppercase; letter-spacing:.32em; color:#9c2b1f; }
+.dateline { font-family:'PT Serif Caption', serif; text-transform: uppercase; letter-spacing:.14em; color:#463b28; }
+.serif-cond { font-family:'PT Serif Caption', serif; }
+.dropcap::first-letter {
+  font-family:'Playfair Display', serif; font-weight:900;
+  float: left; font-size: 8.2cqh; line-height: .74; padding: .6cqh .8cqw 0 0; color:#1a1712;
+}
+.byline { font-family:'PT Serif Caption', serif; text-transform: uppercase; letter-spacing:.16em; color:#463b28; font-size: 1.5cqh; }
+
+/* col rule */
+.cols { column-gap: 2.6cqw; column-rule: 1px solid #b7ad93; }
+.cols p { margin-bottom: 1.6cqh; text-align: justify; hyphens: auto; }
+
+/* ===================== S1 — MASTHEAD ===================== */
+.s-title { justify-content: flex-start; padding-top: 5cqh; }
+.top-strap { display:flex; justify-content:space-between; align-items:flex-end; font-size:1.4cqh; padding-bottom:1cqh; }
+.masthead-name.big { font-size: 12.5cqh; margin: 1.2cqh 0 .6cqh; letter-spacing: .01em; }
+.mast-sub { text-align:center; font-size:1.6cqh; }
+.mast-band { display:flex; justify-content:space-between; align-items:center; font-size:1.35cqh; padding:.7cqh 0; }
+.headline {
+  font-family:'Playfair Display', serif; font-weight:900; text-align:center;
+  font-size: 10.8cqh; line-height:.92; margin-top: 2.6cqh; letter-spacing:-.01em;
+}
+.subhead {
+  font-family:'Playfair Display', serif; font-style:italic; text-align:center;
+  font-size: 3.4cqh; margin-top:1.8cqh; color:#2a2318; font-weight:400;
+}
+.title-byline { text-align:center; margin-top:1.6cqh; font-size:1.7cqh; }
+.title-lede { margin-top:2.4cqh; column-count:3; }
+.title-lede p { font-size: 1.9cqh; line-height:1.42; }
+
+/* ===================== generic content header ===================== */
+.sec-head { display:flex; align-items:baseline; justify-content:space-between; }
+.sec-title { font-family:'Playfair Display', serif; font-weight:900; font-size:6.4cqh; line-height:.95; }
+.folio { font-family:'PT Serif Caption', serif; text-transform:uppercase; letter-spacing:.22em; font-size:1.5cqh; color:#463b28; }
+
+/* ===================== S2 — scene ===================== */
+.scene-grid { display:grid; grid-template-columns: 1.15fr 1fr; gap: 3.4cqw; margin-top:2.2cqh; flex:1; }
+.scene-grid .body { font-size:2cqh; line-height:1.5; }
+.scene-grid .body p { margin-bottom:1.5cqh; text-align:justify; }
+.scene-aside { border-left:3px double #1a1712; padding-left:1.8cqw; }
+.wxbox { border:2px solid #1a1712; padding:1.6cqh 1.6cqw; }
+.wxbox h4 { font-family:'PT Serif Caption', serif; text-transform:uppercase; letter-spacing:.18em; text-align:center; font-size:1.7cqh; border-bottom:1px solid #6b5f47; padding-bottom:.9cqh; margin-bottom:1cqh; }
+.wxrow { display:flex; justify-content:space-between; font-size:1.7cqh; padding:.5cqh 0; border-bottom:1px dotted #b7ad93; }
+.wxrow span:last-child { font-family:'Playfair Display', serif; font-weight:700; }
+.spark { font-family:'Playfair Display', serif; font-weight:900; font-style:italic; font-size:3.1cqh; line-height:1.1; margin-top:2cqh; color:#9c2b1f; }
+
+/* ===================== S3 — quote ===================== */
+.s-quote { align-items:center; text-align:center; }
+.quote-mark { font-family:'Playfair Display', serif; font-size:14cqh; line-height:.4; color:#9c2b1f; height:6cqh; }
+.big-quote { font-family:'Playfair Display', serif; font-style:italic; font-weight:700; font-size:6.2cqh; line-height:1.12; max-width:34ch; margin:0 auto; }
+.quote-attr { margin-top:3.2cqh; font-size:1.9cqh; }
+.quote-attr .name { font-family:'PT Serif Caption', serif; text-transform:uppercase; letter-spacing:.2em; font-size:2cqh; }
+
+/* ===================== S4 — the facts ===================== */
+.facts-cols { display:grid; grid-template-columns:repeat(3,1fr); gap:0; margin-top:2.4cqh; flex:1; }
+.fact { padding:0 2.2cqw; border-right:1px solid #b7ad93; display:flex; flex-direction:column; }
+.fact:last-child { border-right:0; }
+.fact .num { font-family:'Playfair Display', serif; font-weight:900; font-size:9cqh; line-height:.9; color:#1a1712; }
+.fact .num small { font-size:3.2cqh; }
+.fact .lbl { font-family:'PT Serif Caption', serif; text-transform:uppercase; letter-spacing:.14em; font-size:1.7cqh; color:#9c2b1f; margin:.6cqh 0 1.4cqh; }
+.fact .desc { font-size:1.75cqh; line-height:1.45; text-align:justify; }
+.fact hr { margin:1.2cqh 0; }
+
+/* ===================== S5 — aftermath ===================== */
+.after-grid { margin-top:2.2cqh; flex:1; }
+.after-cols { column-count:3; column-gap:2.6cqw; column-rule:1px solid #b7ad93; font-size:1.85cqh; line-height:1.48; }
+.after-cols p { margin-bottom:1.4cqh; text-align:justify; }
+.after-sub { font-family:'PT Serif Caption', serif; text-transform:uppercase; letter-spacing:.14em; font-size:1.9cqh; color:#9c2b1f; margin-bottom:.4cqh; break-after:avoid; }
+.cont { font-style:italic; color:#463b28; text-align:right; margin-top:1cqh; font-family:'Playfair Display', serif; font-size:1.7cqh; }
+
+/* ===================== S6 — sign-off ===================== */
+.s-final { justify-content:center; text-align:center; }
+.final-edition { font-family:'PT Serif Caption', serif; text-transform:uppercase; letter-spacing:.4em; color:#9c2b1f; font-size:2.1cqh; }
+.final-30 { font-family:'Playfair Display', serif; font-weight:900; font-size:16cqh; line-height:1; margin:2cqh 0; }
+.final-note { font-family:'Playfair Display', serif; font-style:italic; font-size:3cqh; max-width:40ch; margin:0 auto; }
+.final-foot { margin-top:3.4cqh; font-size:1.6cqh; }
+
+/* counter */
+.counter {
+  position: absolute; bottom: 2.4cqh; right: 3cqw; z-index: 50;
+  font-family:'PT Serif Caption', serif; letter-spacing:.2em; font-size:1.5cqh; color:#463b28;
+}
+
+/* entrance */
+@keyframes rise { from { opacity:0; transform: translateY(2.2cqh); } to { opacity:1; transform:none; } }
+.slide.active .anim { animation: rise .7s cubic-bezier(.2,.7,.2,1) both; }
+.slide.active .anim.d1 { animation-delay:.08s; }
+.slide.active .anim.d2 { animation-delay:.18s; }
+.slide.active .anim.d3 { animation-delay:.30s; }
+.slide.active .anim.d4 { animation-delay:.42s; }
+@media (prefers-reduced-motion: reduce) { .slide.active .anim { animation: none; } }
+</style>
+</head>
+<body>
+<div class="viewport"><div class="stage">
+
+  <!-- ===================== SLIDE 1 — MASTHEAD ===================== -->
+  <section class="slide active s-title">
+    <div class="top-strap anim">
+      <span class="smallcaps">Vol. CXXVI · No. 43,712</span>
+      <span class="dateline">Thursday, July Fourteenth, 1977</span>
+      <span class="smallcaps">Price · Twenty Cents</span>
+    </div>
+    <hr class="rule anim">
+    <div class="masthead-name big anim d1">The Daily Chronicle</div>
+    <div class="mast-sub serif-cond anim d1">&mdash; New York&rsquo;s Illustrated Journal of Record &mdash;</div>
+    <hr class="rule anim d1" style="margin-top:1cqh;">
+    <div class="mast-band anim d1">
+      <span class="smallcaps">City &amp; Metropolitan Edition</span>
+      <span class="smallcaps red">Extra! Extra!</span>
+      <span class="smallcaps">Weather: Sultry, 94&deg; · Storms</span>
+    </div>
+    <hr class="rule-double anim d1">
+
+    <h1 class="headline anim d2">THE NIGHT THE<br>LIGHTS WENT OUT</h1>
+    <p class="subhead anim d3">Lightning Fells the Grid at Half-Past Nine; Nine Millions Plunged into a Darkness of Twenty-Five Hours</p>
+    <p class="title-byline anim d3"><span class="byline">By Eleanor R. Vance</span> &nbsp;&bull;&nbsp; <span class="serif-cond">Chief Metropolitan Correspondent</span></p>
+
+    <div class="title-lede cols anim d4">
+      <p><span class="smallcaps">New York.</span> &mdash; At nine twenty-seven o&rsquo;clock last evening, in the airless heat of a July heatwave, the great electric heart of this city stopped. From the Bronx to the Battery, from Broadway&rsquo;s blazing marquees to the tenement stoops of Bushwick, the current failed and did not return.</p>
+      <p>What began as a bolt of lightning upon a substation at Buchanan cascaded, in scarcely one hour, into the total collapse of the Consolidated Edison network &mdash; a failure engineers had thought all but impossible after the humbling darkness of 1965.</p>
+      <p>Through the long, sweltering night that followed, a city of eight millions was left to its own devices: to candlelight and canned heat, to fear and to fellowship, to looting and to unexpected grace. This is the record of those hours.</p>
+    </div>
+  </section>
+
+  <!-- ===================== SLIDE 2 — THE SCENE ===================== -->
+  <section class="slide">
+    <div class="sec-head anim">
+      <span class="kicker">The Scene &bull; A City on the Boil</span>
+      <span class="folio">The Daily Chronicle &mdash; 2</span>
+    </div>
+    <h2 class="sec-title anim d1">A Heatwave, a Storm, and a Single Fatal Bolt</h2>
+    <hr class="rule anim d1" style="margin-top:1.4cqh;">
+    <div class="scene-grid">
+      <div class="body anim d2">
+        <p class="dropcap">For nine consecutive days the mercury had refused to fall. The pavements shimmered; the rivers gave no relief; and in the crowded flats of the boroughs, families dragged mattresses onto fire escapes in search of a breath of moving air. The demand for current, driven by ten thousand humming fans and window units, pressed against Con Edison&rsquo;s every reserve.</p>
+        <p>Then came the storm. A little after half-past eight, a squall line rolled down the Hudson, and at 8:37 a bolt of lightning struck two 345-kilovolt transmission lines at the Buchanan South substation, hard by the Indian Point plant. A second strike followed. Circuit breakers, meant to protect, tripped and would not reset.</p>
+        <p>For fifty desperate minutes, dispatchers in the control room watched the load shift and stagger from one line to the next, each in turn tripping under the strain. Voltage sagged; frequency wandered. At 9:27, the last tie to the outside world parted, and the island stood alone in the dark.</p>
+      </div>
+      <aside class="scene-aside anim d3">
+        <div class="wxbox">
+          <h4>Bulletin of the Storm</h4>
+          <div class="wxrow"><span>First strike, Buchanan</span><span>8:37 PM</span></div>
+          <div class="wxrow"><span>Second lightning hit</span><span>8:55 PM</span></div>
+          <div class="wxrow"><span>Cascade complete</span><span>9:27 PM</span></div>
+          <div class="wxrow"><span>Peak temperature</span><span>94&deg;F</span></div>
+          <div class="wxrow"><span>Voltage at collapse</span><span>&mdash;34%</span></div>
+        </div>
+        <p class="spark anim d4">&ldquo;We lost the whole system. There was nothing left to hold.&rdquo;<br><span class="serif-cond" style="font-size:1.6cqh;font-style:normal;color:#463b28;">&mdash; A Con Edison dispatcher, to this paper</span></p>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ===================== SLIDE 3 — EYEWITNESS QUOTE ===================== -->
+  <section class="slide s-quote">
+    <span class="kicker anim" style="margin-bottom:2cqh;">From Our Streets &bull; An Eyewitness</span>
+    <div class="quote-mark anim d1">&ldquo;</div>
+    <blockquote class="big-quote anim d2">One moment the whole avenue was gold with light &mdash; and then, all at once, the city simply vanished, and there was nothing but stars we had never once seen before.</blockquote>
+    <div class="quote-attr anim d3">
+      <div class="name">Sofia Mendez</div>
+      <div class="serif-cond">Schoolteacher, of East 138th Street, The Bronx</div>
+    </div>
+    <hr class="rule-thin anim d4" style="width:26cqw;margin:3cqh auto 0;">
+  </section>
+
+  <!-- ===================== SLIDE 4 — THE FACTS ===================== -->
+  <section class="slide">
+    <div class="sec-head anim">
+      <span class="kicker">By the Numbers &bull; The Reckoning</span>
+      <span class="folio">The Daily Chronicle &mdash; 4</span>
+    </div>
+    <h2 class="sec-title anim d1">The Long Dark, Set Down in Figures</h2>
+    <hr class="rule-double anim d1" style="margin-top:1.4cqh;">
+    <div class="facts-cols">
+      <div class="fact anim d2">
+        <div class="num">25<small> hrs</small></div>
+        <div class="lbl">In Total Darkness</div>
+        <hr class="rule-thin">
+        <p class="desc">From the collapse at 9:27 on the evening of the thirteenth until power was fully restored at 10:39 the following night, the metropolis endured better than a full day without current &mdash; the longest such blackout in its history.</p>
+      </div>
+      <div class="fact anim d3">
+        <div class="num">3,776</div>
+        <div class="lbl">Souls Arrested</div>
+        <hr class="rule-thin">
+        <p class="desc">Amid the looting that swept thirty-one neighbourhoods, the police made the largest mass of arrests the city had ever recorded in a single episode. More than a thousand fires were set; five hundred and fifty officers were injured in the tumult.</p>
+      </div>
+      <div class="fact anim d4">
+        <div class="num">1,616</div>
+        <div class="lbl">Storefronts Ruined</div>
+        <hr class="rule-thin">
+        <p class="desc">From Bushwick to the Grand Concourse, sixteen hundred shops were damaged or emptied. The losses are reckoned near three hundred million dollars &mdash; a wound to the poorest wards from which many merchants shall not recover.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== SLIDE 5 — AFTERMATH ===================== -->
+  <section class="slide">
+    <div class="sec-head anim">
+      <span class="kicker">The Aftermath &bull; A City Takes Stock</span>
+      <span class="folio">The Daily Chronicle &mdash; 6</span>
+    </div>
+    <h2 class="sec-title anim d1">Dawn Breaks on a Chastened Metropolis</h2>
+    <hr class="rule anim d1" style="margin-top:1.4cqh;">
+    <div class="after-grid anim d2">
+      <div class="after-cols">
+        <p class="after-sub">A Sweltering Vigil</p>
+        <p class="dropcap">When the sun rose over the East River, it lit a city both broken and bound closer together. On darkened blocks, neighbours had passed the night on stoops, sharing melting ice and battery wirelesses, directing traffic by hand at every silent signal, and shepherding the stranded down the black stairwells of a hundred towers.</p>
+        <p>Elsewhere the night had shown a crueller face. Whole commercial strips lay gutted and smoking, their gates torn from the brick, their goods carried off into the dark. By morning the fire brigades, having answered better than a thousand alarms, stood exhausted in the ash.</p>
+        <p class="after-sub">Questions for Con Edison</p>
+        <p>Already the demands for answer mount. How, twelve years after the lessons of 1965, could a single storm topple the whole apparatus? Why did the automatic load-shedding fail to save the core? The Governor has ordered an inquiry; the Mayor speaks of &ldquo;a night of terror and of shame.&rdquo;</p>
+        <p>Yet amid the recrimination there are the quieter accounts &mdash; of the midwife who delivered a child by flashlight, of the strangers who linked arms across a flooded intersection, of the whole block that sang until the streetlamps, near eleven the next night, flickered and at last held.</p>
+        <p class="cont">Continued on Page 9, Column 1 &rarr;</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== SLIDE 6 — SIGN-OFF ===================== -->
+  <section class="slide s-final">
+    <hr class="rule-double anim" style="width:44cqw;margin:0 auto 2.4cqh;">
+    <div class="final-edition anim d1">Final Edition &bull; Presses Stopped 11:04 PM</div>
+    <div class="final-30 anim d2">&mdash; 30 &mdash;</div>
+    <p class="final-note anim d3">And so the lights came back, one avenue at a time, and the city that had glimpsed its own stars turned again to the ordinary business of the morning.</p>
+    <hr class="rule-thin anim d4" style="width:30cqw;margin:3cqh auto 0;">
+    <p class="final-foot anim d4"><span class="smallcaps">The Daily Chronicle</span> &nbsp;&bull;&nbsp; Set in Playfair &amp; Lora &nbsp;&bull;&nbsp; All the News While It Is Still Warm</p>
+  </section>
+
+  <div class="edges"></div>
+  <div class="counter" id="counter"></div>
+</div></div>
+
+<script>
+  const stageEl = document.querySelector('.stage');
+  function fitStage(){ const s = Math.min(innerWidth/1920, innerHeight/1080); if(stageEl) stageEl.style.setProperty('--vizscale', s); }
+  addEventListener('resize', fitStage); fitStage();
+  let cur = 0;
+  const slides = () => Array.from(document.querySelectorAll('.slide'));
+  const counter = document.getElementById('counter');
+  function render() {
+    const all = slides();
+    all.forEach((s, n) => s.classList.toggle('active', n === cur));
+    if (counter) counter.textContent = (cur + 1) + ' / ' + all.length;
+  }
+  window.goToSlide = function (i) {
+    const all = slides();
+    cur = Math.max(0, Math.min(i, all.length - 1));
+    render();
+  };
+  addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') goToSlide(cur + 1);
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') goToSlide(cur - 1);
+  });
+  const init = slides().findIndex((s) => s.classList.contains('active'));
+  cur = init < 0 ? 0 : init;
+  render();
+</script>
+</body>
+</html>

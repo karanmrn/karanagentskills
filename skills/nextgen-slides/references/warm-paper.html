@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Third Wave of Coffee — A Warm Paper Talk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Work+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #d9cfbf; }
+
+  :root {
+    --paper: #f3ede2;
+    --paper-2: #ece3d4;
+    --ink: #1f1b16;
+    --ink-soft: #514a3f;
+    --ink-faint: #8a8072;
+    --terra: #c2542a;
+    --terra-deep: #9c3f1e;
+    --hair: #cdc2ad;
+  }
+
+  .viewport { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+  .stage {
+    position: relative; width: 1920px; height: 1080px; flex: none; overflow: hidden;
+    container-type: size; transform: scale(var(--vizscale, 1)); transform-origin: center center;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Work Sans', sans-serif;
+  }
+
+  /* subtle paper grain + warmth */
+  .stage::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 3;
+    background:
+      radial-gradient(120% 90% at 12% 8%, rgba(255,251,243,.55), transparent 55%),
+      radial-gradient(120% 120% at 92% 100%, rgba(160,140,110,.14), transparent 55%);
+  }
+  .stage::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 3; opacity: .5;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='0.5'/></svg>");
+    mix-blend-mode: multiply;
+  }
+
+  .slide {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .5s ease;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 9cqh 11cqw; z-index: 1;
+  }
+  .slide.active { opacity: 1; visibility: visible; pointer-events: auto; z-index: 2; }
+
+  /* ---- shared type ---- */
+  .kicker {
+    font-family: 'Work Sans', sans-serif; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .42em; font-size: 1.15cqh;
+    color: var(--terra); display: flex; align-items: center; gap: 1.4cqw;
+  }
+  .kicker::before { content: ""; width: 3.4cqw; height: 1px; background: var(--terra); display: inline-block; }
+  .kicker.plain::before { display: none; }
+
+  .display {
+    font-family: 'Instrument Serif', serif; font-weight: 400;
+    line-height: .98; letter-spacing: -0.01em; color: var(--ink);
+  }
+  .display em { font-style: italic; color: var(--terra-deep); }
+
+  .body {
+    font-family: 'Work Sans', sans-serif; font-weight: 400;
+    color: var(--ink-soft); line-height: 1.55;
+  }
+
+  .num-label {
+    font-family: 'Instrument Serif', serif; font-style: italic;
+    color: var(--terra); font-size: 2.4cqh;
+  }
+
+  /* entrance animation */
+  @keyframes rise { from { opacity: 0; transform: translateY(2.2cqh); } to { opacity: 1; transform: none; } }
+  .slide.active .stagger > * { animation: rise .7s cubic-bezier(.2,.7,.2,1) both; }
+  .slide.active .stagger > *:nth-child(2) { animation-delay: .08s; }
+  .slide.active .stagger > *:nth-child(3) { animation-delay: .16s; }
+  .slide.active .stagger > *:nth-child(4) { animation-delay: .24s; }
+  .slide.active .stagger > *:nth-child(5) { animation-delay: .32s; }
+  .slide.active .stagger > *:nth-child(6) { animation-delay: .40s; }
+  @media (prefers-reduced-motion: reduce) {
+    .slide.active .stagger > * { animation: none !important; }
+    .slide { transition: none; }
+  }
+
+  /* ---------- Slide 1: Title ---------- */
+  #s1 { padding: 0; }
+  #s1 .frame {
+    position: absolute; inset: 6cqh 5cqw; border: 1px solid var(--hair); z-index: 1;
+  }
+  #s1 .inner {
+    position: relative; z-index: 2; height: 100%;
+    display: flex; flex-direction: column; justify-content: space-between;
+    padding: 11cqh 9cqw;
+  }
+  #s1 .toprow { display: flex; justify-content: space-between; align-items: flex-start; }
+  #s1 .toprow .r { text-align: right; }
+  #s1 .meta { font-size: 1.15cqh; letter-spacing: .3em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500; }
+  #s1 h1 { font-size: 15cqh; }
+  #s1 .subtitle { font-family: 'Instrument Serif', serif; font-style: italic; font-size: 4.2cqh; color: var(--ink-soft); margin-top: 2.6cqh; }
+  #s1 .baseline { display: flex; justify-content: space-between; align-items: flex-end; }
+  #s1 .baseline .lede { max-width: 46ch; font-size: 1.9cqh; }
+  #s1 .bean {
+    width: 8cqw; height: 8cqw; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #a9622f, #5c2f16 70%);
+    position: relative; box-shadow: 0 1.5cqh 4cqh rgba(60,30,10,.25);
+  }
+  #s1 .bean::after {
+    content: ""; position: absolute; inset: 0; border-radius: 50%;
+    background: linear-gradient(115deg, transparent 46%, rgba(20,10,5,.55) 47%, rgba(20,10,5,.55) 53%, transparent 54%);
+  }
+
+  /* ---------- Slide 2: What third wave means ---------- */
+  #s2 .lead-row { display: grid; grid-template-columns: 1.15fr 1fr; gap: 8cqw; align-items: end; }
+  #s2 h2 { font-size: 9cqh; max-width: 15ch; }
+  #s2 .rightcol { padding-bottom: 1.5cqh; }
+  #s2 .rightcol p { font-size: 2cqh; max-width: 40ch; }
+  #s2 .rightcol p + p { margin-top: 2.4cqh; }
+  #s2 .analogy {
+    margin-top: 5.5cqh; padding-top: 4cqh; border-top: 1px solid var(--hair);
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 4cqw;
+  }
+  #s2 .analogy .cell .t { font-family: 'Instrument Serif', serif; font-size: 3.4cqh; margin-bottom: .6cqh; }
+  #s2 .analogy .cell .d { font-size: 1.55cqh; color: var(--ink-soft); line-height: 1.5; max-width: 32ch; }
+  #s2 .analogy .cell .tag { font-size: 1cqh; letter-spacing: .3em; text-transform: uppercase; color: var(--terra); font-weight: 600; }
+
+  /* ---------- Slide 3: Bean to cup steps ---------- */
+  #s3 h2 { font-size: 6.6cqh; max-width: 20ch; margin-top: 1.8cqh; }
+  #s3 .steps { margin-top: 6cqh; display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; }
+  #s3 .step { position: relative; padding: 0 3cqw; }
+  #s3 .step + .step { border-left: 1px solid var(--hair); }
+  #s3 .step .no {
+    font-family: 'Instrument Serif', serif; font-style: italic; font-size: 6cqh;
+    color: var(--terra); line-height: 1; margin-bottom: 2.2cqh;
+  }
+  #s3 .step .arc {
+    display: block; width: 100%; height: 3.4cqh; margin-bottom: 2.6cqh;
+  }
+  #s3 .step h3 { font-family: 'Instrument Serif', serif; font-size: 4.4cqh; margin-bottom: 1.2cqh; }
+  #s3 .step .stagelabel { font-size: 1cqh; letter-spacing: .32em; text-transform: uppercase; color: var(--ink-faint); font-weight: 600; margin-bottom: 1.6cqh; }
+  #s3 .step p { font-size: 1.55cqh; color: var(--ink-soft); line-height: 1.55; max-width: 30ch; }
+
+  /* ---------- Slide 4: Terroir pull quote ---------- */
+  #s4 { align-items: center; text-align: center; padding: 9cqh 14cqw; }
+  #s4 .mark { font-family: 'Instrument Serif', serif; font-size: 16cqh; color: var(--terra); line-height: .5; height: 6cqh; }
+  #s4 blockquote { font-family: 'Instrument Serif', serif; font-size: 7.4cqh; line-height: 1.08; max-width: 26ch; margin: 3cqh auto 0; }
+  #s4 blockquote em { font-style: italic; color: var(--terra-deep); }
+  #s4 .attrib { margin-top: 5cqh; font-size: 1.4cqh; letter-spacing: .28em; text-transform: uppercase; color: var(--ink-faint); font-weight: 600; }
+  #s4 .attrib strong { color: var(--ink); font-weight: 600; }
+
+  /* ---------- Slide 5: Two/three column waves ---------- */
+  #s5 h2 { font-size: 6cqh; max-width: 22ch; margin-top: 1.6cqh; }
+  #s5 .waves { margin-top: 5.5cqh; display: grid; grid-template-columns: repeat(3, 1fr); gap: 3cqw; }
+  #s5 .wave { border-top: 2px solid var(--ink); padding-top: 2.4cqh; }
+  #s5 .wave.now { border-top-color: var(--terra); }
+  #s5 .wave .era { font-size: 1.05cqh; letter-spacing: .3em; text-transform: uppercase; font-weight: 600; color: var(--ink-faint); }
+  #s5 .wave.now .era { color: var(--terra); }
+  #s5 .wave .name { font-family: 'Instrument Serif', serif; font-size: 4cqh; margin: 1cqh 0 1.8cqh; }
+  #s5 .wave .years { font-family: 'Instrument Serif', serif; font-style: italic; color: var(--terra); font-size: 1.9cqh; }
+  #s5 .wave ul { list-style: none; margin-top: 1.8cqh; }
+  #s5 .wave li { font-size: 1.55cqh; color: var(--ink-soft); line-height: 1.45; padding: 1.2cqh 0; border-top: 1px solid var(--hair); display: flex; gap: .8cqw; }
+  #s5 .wave li::before { content: "—"; color: var(--terra); }
+
+  /* ---------- Slide 6: Closing ---------- */
+  #s6 { padding: 0; }
+  #s6 .inner { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; justify-content: center; padding: 11cqh 11cqw; }
+  #s6 h2 { font-size: 11cqh; max-width: 16ch; }
+  #s6 .body { font-size: 2.1cqh; max-width: 52ch; margin-top: 3.2cqh; }
+  #s6 .foot {
+    position: absolute; left: 11cqw; right: 11cqw; bottom: 7cqh; z-index: 2;
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding-top: 2.6cqh; border-top: 1px solid var(--hair);
+    font-size: 1.3cqh; letter-spacing: .26em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500;
+  }
+  #s6 .foot strong { color: var(--ink); font-weight: 600; }
+  #s6 .steam { position: absolute; right: 11cqw; top: 12cqh; z-index: 2; opacity: .8; }
+
+  /* ---------- counter ---------- */
+  .counter {
+    position: absolute; z-index: 5; right: 4.4cqw; bottom: 4cqh;
+    font-family: 'Work Sans', sans-serif; font-weight: 500;
+    font-size: 1.2cqh; letter-spacing: .3em; color: var(--ink-faint);
+  }
+</style>
+</head>
+<body>
+<div class="viewport"><div class="stage">
+
+  <!-- 1. TITLE -->
+  <section class="slide active" id="s1">
+    <div class="frame"></div>
+    <div class="inner stagger">
+      <div class="toprow">
+        <div class="meta">A Talk on<br>Specialty Coffee</div>
+        <div class="r meta">No. 03<br>Craft Series</div>
+      </div>
+      <div>
+        <div class="kicker plain" style="margin-bottom:2.6cqh;">The Third Wave</div>
+        <h1 class="display">Coffee,<br>Reconsidered<em>.</em></h1>
+        <div class="subtitle">from commodity to craft, one cup at a time</div>
+      </div>
+      <div class="baseline">
+        <p class="body lede">An approachable look at how a humble morning ritual became a field of terroir, roast profiles, and single-origin obsession.</p>
+        <div class="bean"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. WHAT THIRD WAVE MEANS -->
+  <section class="slide" id="s2">
+    <div class="stagger" style="display:contents;">
+    <div class="kicker">What "third wave" means</div>
+    <div class="lead-row" style="margin-top:3cqh;">
+      <h2 class="display">Coffee treated as a <em>craft</em>, not a commodity.</h2>
+      <div class="rightcol">
+        <p class="body">The phrase, coined by roaster Trish Rothgeb in 2002, describes a movement that treats coffee the way sommeliers treat wine — worthy of attention to origin, variety, and process.</p>
+        <p class="body">The bean stops being an anonymous caffeine delivery system and becomes an agricultural product with a name, a farm, and a season.</p>
+      </div>
+    </div>
+    <div class="analogy">
+      <div class="cell">
+        <div class="tag">Like wine</div>
+        <div class="t">Origin matters</div>
+        <div class="d">A washed Ethiopian Yirgacheffe tastes of jasmine and bergamot; a Sumatran, of cedar and cocoa. Place is in the cup.</div>
+      </div>
+      <div class="cell">
+        <div class="tag">Like wine</div>
+        <div class="t">The maker is named</div>
+        <div class="d">Farmer, importer, and roaster are credited by name — traceability from a specific lot back to a specific hillside.</div>
+      </div>
+      <div class="cell">
+        <div class="tag">Like wine</div>
+        <div class="t">Vintage & season</div>
+        <div class="d">Coffee is a harvest. A bag carries its crop year, its altitude, its processing method — read like a label.</div>
+      </div>
+    </div>
+    </div>
+  </section>
+
+  <!-- 3. BEAN TO CUP STEPS -->
+  <section class="slide" id="s3">
+    <div class="stagger" style="display:contents;">
+    <div class="kicker">The journey</div>
+    <h2 class="display">From <em>bean to cup</em>, every hand leaves a fingerprint.</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="no">01</div>
+        <svg class="arc" viewBox="0 0 200 20" preserveAspectRatio="none"><path d="M0 18 Q100 2 200 18" fill="none" stroke="#c2542a" stroke-width="2"/></svg>
+        <div class="stagelabel">Origin</div>
+        <h3>The Farm</h3>
+        <p>Cherries ripen at altitude, are hand-picked, then washed, honeyed, or naturally dried. Processing alone can swing the flavor from clean and floral to jammy and wild.</p>
+      </div>
+      <div class="step">
+        <div class="no">02</div>
+        <svg class="arc" viewBox="0 0 200 20" preserveAspectRatio="none"><path d="M0 18 Q100 2 200 18" fill="none" stroke="#c2542a" stroke-width="2"/></svg>
+        <div class="stagelabel">Transformation</div>
+        <h3>The Roast</h3>
+        <p>Green beans meet heat. Over eight to twelve minutes the roaster coaxes out sugars and acids — stopping just past first crack to protect the delicate top notes.</p>
+      </div>
+      <div class="step">
+        <div class="no">03</div>
+        <svg class="arc" viewBox="0 0 200 20" preserveAspectRatio="none"><path d="M0 18 Q100 2 200 18" fill="none" stroke="#c2542a" stroke-width="2"/></svg>
+        <div class="stagelabel">The ritual</div>
+        <h3>The Brew</h3>
+        <p>Grind, water temperature, and time do the rest. A patient pour-over at 94°C draws out clarity the farm spent nine months building. Then, finally, you drink.</p>
+      </div>
+    </div>
+    </div>
+  </section>
+
+  <!-- 4. TERROIR PULL QUOTE -->
+  <section class="slide" id="s4">
+    <div class="stagger" style="display:contents;">
+    <div class="mark">&ldquo;</div>
+    <blockquote class="display">You are not tasting a brand.<br>You are tasting a <em>place</em> — its soil, its altitude, its weather.</blockquote>
+    <div class="attrib">On Terroir · <strong>The idea that geography is a flavor</strong></div>
+    </div>
+  </section>
+
+  <!-- 5. THREE WAVES CONTRAST -->
+  <section class="slide" id="s5">
+    <div class="stagger" style="display:contents;">
+    <div class="kicker">A short history</div>
+    <h2 class="display">Three waves, three very different relationships with the cup.</h2>
+    <div class="waves">
+      <div class="wave">
+        <div class="era">First Wave</div>
+        <div class="name">Coffee everywhere</div>
+        <div class="years">1900s–1960s</div>
+        <ul>
+          <li>Ground, canned, and shelf-stable</li>
+          <li>Convenience over character</li>
+          <li>Instant coffee reaches every kitchen</li>
+          <li>The goal: caffeine, cheaply</li>
+        </ul>
+      </div>
+      <div class="wave">
+        <div class="era">Second Wave</div>
+        <div class="name">Coffee as experience</div>
+        <div class="years">1970s–1990s</div>
+        <ul>
+          <li>The café becomes a "third place"</li>
+          <li>Espresso, lattes, and menus</li>
+          <li>Darker roasts, bolder branding</li>
+          <li>The goal: comfort and ritual</li>
+        </ul>
+      </div>
+      <div class="wave now">
+        <div class="era">Third Wave · Now</div>
+        <div class="name">Coffee as craft</div>
+        <div class="years">2000s–today</div>
+        <ul>
+          <li>Single-origin, traceable lots</li>
+          <li>Lighter roasts, tasting notes</li>
+          <li>Direct trade with named farms</li>
+          <li>The goal: flavor and honesty</li>
+        </ul>
+      </div>
+    </div>
+    </div>
+  </section>
+
+  <!-- 6. CLOSING -->
+  <section class="slide" id="s6">
+    <div class="inner stagger">
+      <div class="kicker plain" style="margin-bottom:2.4cqh;">Before your next cup</div>
+      <h2 class="display">Slow down.<br>Ask where it <em>came from</em>.</h2>
+      <p class="body">The third wave isn't about snobbery — it's about attention. The next time a cup surprises you, turn the bag over. Somewhere on a hillside, a farmer meant for it to taste exactly like that.</p>
+    </div>
+    <svg class="steam" width="70" height="120" viewBox="0 0 70 120" fill="none" stroke="#c2542a" stroke-width="2" stroke-linecap="round" opacity="0.7">
+      <path d="M25 118 Q10 90 25 62 Q40 34 25 6"/>
+      <path d="M48 118 Q33 90 48 62 Q63 34 48 10"/>
+    </svg>
+    <div class="foot">
+      <span><strong>The Third Wave of Coffee</strong> · Craft Series No. 03</span>
+      <span>Origin → Roast → Brew → You</span>
+    </div>
+  </section>
+
+  <div class="counter" id="counter"></div>
+</div></div>
+
+<script>
+  const stageEl = document.querySelector('.stage');
+  function fitStage(){ const s = Math.min(innerWidth/1920, innerHeight/1080); if(stageEl) stageEl.style.setProperty('--vizscale', s); }
+  addEventListener('resize', fitStage); fitStage();
+  let cur = 0;
+  const slides = () => Array.from(document.querySelectorAll('.slide'));
+  const counter = document.getElementById('counter');
+  function render() {
+    const all = slides();
+    all.forEach((s, n) => s.classList.toggle('active', n === cur));
+    if (counter) counter.textContent = (cur + 1) + ' / ' + all.length;
+  }
+  window.goToSlide = function (i) {
+    const all = slides();
+    cur = Math.max(0, Math.min(i, all.length - 1));
+    render();
+  };
+  addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') goToSlide(cur + 1);
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') goToSlide(cur - 1);
+  });
+  const init = slides().findIndex((s) => s.classList.contains('active'));
+  cur = init < 0 ? 0 : init;
+  render();
+</script>
+</body>
+</html>

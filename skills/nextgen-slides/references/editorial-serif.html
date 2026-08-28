@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Art of the Opening Line — A Talk on First Sentences</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #05070f; }
+
+:root {
+  --navy-0: #0b1020;
+  --navy-1: #131a33;
+  --ink: #f4f1ea;
+  --ink-dim: #b9b4a7;
+  --ink-faint: #6f7488;
+  --gold: #ffcc4d;
+  --hair: rgba(244,241,234,0.16);
+}
+
+.viewport { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+.stage {
+  position: relative; width: 1920px; height: 1080px; flex: none; overflow: hidden;
+  container-type: size;
+  transform: scale(var(--vizscale, 1)); transform-origin: center center;
+  background:
+    radial-gradient(120% 90% at 78% -10%, rgba(255,204,77,0.08), transparent 55%),
+    linear-gradient(140deg, var(--navy-0) 0%, var(--navy-1) 100%);
+  color: var(--ink);
+  font-family: "Newsreader", Georgia, serif;
+}
+/* subtle paper grain */
+.stage::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0.05;
+  background-image:
+    radial-gradient(circle at 25% 15%, rgba(255,255,255,0.7) 0.5px, transparent 1px),
+    radial-gradient(circle at 70% 60%, rgba(255,255,255,0.6) 0.5px, transparent 1px),
+    radial-gradient(circle at 45% 85%, rgba(255,255,255,0.6) 0.5px, transparent 1px);
+  background-size: 220px 220px, 300px 300px, 260px 260px;
+  mix-blend-mode: screen;
+}
+
+.slide {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .5s ease;
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 8.5cqh 9cqw;
+}
+.slide.active { opacity: 1; visibility: visible; pointer-events: auto; }
+
+/* entrance animation */
+@keyframes rise { from { opacity: 0; transform: translateY(2.2cqh); } to { opacity: 1; transform: translateY(0); } }
+@keyframes drawline { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.slide.active .anim { opacity: 0; animation: rise .8s cubic-bezier(.2,.7,.2,1) forwards; }
+.slide.active .anim.d1 { animation-delay: .10s; }
+.slide.active .anim.d2 { animation-delay: .22s; }
+.slide.active .anim.d3 { animation-delay: .34s; }
+.slide.active .anim.d4 { animation-delay: .46s; }
+.slide.active .anim.d5 { animation-delay: .58s; }
+.slide.active .rule-anim { transform-origin: left; animation: drawline .9s cubic-bezier(.2,.7,.2,1) .30s both; }
+
+.kicker {
+  font-family: "Fraunces", serif; font-optical-sizing: auto;
+  font-weight: 500; letter-spacing: 0.42cqw; text-transform: uppercase;
+  font-size: 1.35cqw; color: var(--gold);
+}
+.eyebrow-num { color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+
+.display {
+  font-family: "Fraunces", serif; font-optical-sizing: auto;
+  font-weight: 400; line-height: 0.98; letter-spacing: -0.02em;
+}
+.italic { font-style: italic; }
+.gold { color: var(--gold); }
+.dim { color: var(--ink-dim); }
+
+.hair { height: 1px; background: var(--hair); border: 0; }
+.hair-gold { height: 2px; background: var(--gold); border: 0; }
+
+.body {
+  font-family: "Newsreader", serif; font-weight: 300;
+  line-height: 1.5; color: var(--ink-dim);
+  font-size: 1.7cqw; max-width: 34ch;
+}
+
+.counter {
+  position: absolute; right: 4cqw; bottom: 4cqh;
+  font-family: "Fraunces", serif; font-size: 1.15cqw; letter-spacing: 0.1cqw;
+  color: var(--ink-faint); font-variant-numeric: tabular-nums; z-index: 5;
+}
+.footer-mark {
+  position: absolute; left: 9cqw; bottom: 4cqh;
+  font-family: "Fraunces", serif; font-weight: 500; font-size: 1.15cqw;
+  letter-spacing: 0.18cqw; text-transform: uppercase; color: var(--ink-faint);
+}
+
+/* ---------- Slide 1 : Title ---------- */
+#s1 { justify-content: space-between; padding-top: 9cqh; padding-bottom: 9cqh; }
+.title-top { display: flex; justify-content: space-between; align-items: baseline; }
+.title-top .kicker { font-size: 1.5cqw; }
+.title-main .display { font-size: 12cqw; }
+.title-main .line2 { margin-left: 0.6cqw; }
+.title-meta { display: flex; justify-content: space-between; align-items: flex-end; }
+.title-meta .body { max-width: 40ch; font-size: 1.55cqw; }
+.speaker { text-align: right; }
+.speaker .name { font-family: "Fraunces", serif; font-size: 2.1cqw; font-weight: 500; }
+.speaker .role { font-size: 1.35cqw; color: var(--ink-faint); font-style: italic; }
+
+/* ---------- Slide 2 : Why openings matter ---------- */
+.two-up { display: grid; grid-template-columns: 1.05fr 1fr; gap: 7cqw; align-items: center; }
+.lead-head .display { font-size: 6.2cqw; }
+.stat-block { display: flex; flex-direction: column; gap: 3.2cqh; }
+.stat .num { font-family: "Fraunces", serif; font-weight: 300; font-size: 6cqw; line-height: 1; color: var(--gold); }
+.stat .lbl { font-size: 1.5cqw; color: var(--ink-dim); line-height: 1.4; max-width: 26ch; margin-top: 0.6cqh; }
+
+/* ---------- Slide 3 : Pull quote ---------- */
+#s3 { align-items: center; text-align: center; }
+.quote-mark { font-family: "Fraunces", serif; font-style: italic; font-size: 12cqw; line-height: 0.4; color: var(--gold); height: 3cqh; }
+.pullquote { font-family: "Fraunces", serif; font-style: italic; font-weight: 400; font-size: 5.4cqw; line-height: 1.14; max-width: 30ch; letter-spacing: -0.01em; }
+.attr { margin-top: 5cqh; display: flex; flex-direction: column; gap: 0.4cqh; }
+.attr .who { font-family: "Fraunces", serif; font-size: 1.7cqw; letter-spacing: 0.35cqw; text-transform: uppercase; }
+.attr .work { font-size: 1.4cqw; color: var(--ink-faint); font-style: italic; }
+
+/* ---------- Slide 4 : Techniques list ---------- */
+.section-head { display: flex; align-items: baseline; gap: 1.5cqw; margin-bottom: 5cqh; }
+.section-head .display { font-size: 4.6cqw; }
+.tech-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4cqw; }
+.tech { display: flex; flex-direction: column; gap: 1.4cqh; }
+.tech .idx { font-family: "Fraunces", serif; font-style: italic; font-size: 2cqw; color: var(--gold); }
+.tech h3 { font-family: "Fraunces", serif; font-weight: 500; font-size: 2.6cqw; line-height: 1.05; }
+.tech p { font-size: 1.45cqw; color: var(--ink-dim); line-height: 1.5; max-width: 26ch; font-weight: 300; }
+
+/* ---------- Slide 5 : Two-column contrast ---------- */
+.contrast { display: grid; grid-template-columns: 1fr 1px 1fr; gap: 5cqw; align-items: stretch; }
+.col-divider { background: var(--hair); }
+.col .tag { font-family: "Fraunces", serif; font-style: italic; font-size: 1.6cqw; color: var(--gold); }
+.col h3 { font-family: "Fraunces", serif; font-weight: 400; font-size: 3.4cqw; line-height: 1.05; margin-top: 1cqh; }
+.col .ex { font-family: "Newsreader", serif; font-style: italic; font-size: 1.75cqw; color: var(--ink); line-height: 1.4; margin-top: 3cqh; max-width: 30ch; }
+.col .ex-src { font-size: 1.25cqw; color: var(--ink-faint); margin-top: 1.2cqh; }
+.col p { font-size: 1.45cqw; color: var(--ink-dim); line-height: 1.5; margin-top: 3cqh; max-width: 32ch; font-weight: 300; }
+
+/* ---------- Slide 6 : Closing ---------- */
+#s6 { align-items: flex-start; }
+.close-head .display { font-size: 8cqw; }
+.close-body { font-size: 2cqw; color: var(--ink-dim); max-width: 42ch; line-height: 1.5; font-weight: 300; margin-top: 4cqh; }
+.close-sign { margin-top: 6cqh; display: flex; align-items: center; gap: 2cqw; }
+.close-sign .name { font-family: "Fraunces", serif; font-style: italic; font-size: 2cqw; color: var(--gold); }
+.close-sign .thin { flex: 1; height: 1px; background: var(--hair); max-width: 30cqw; }
+
+@media (prefers-reduced-motion: reduce) {
+  .slide.active .anim { animation: none; opacity: 1; }
+  .slide.active .rule-anim { animation: none; transform: none; }
+}
+</style>
+</head>
+<body>
+<div class="viewport"><div class="stage">
+
+  <!-- 1. TITLE -->
+  <section class="slide active" id="s1">
+    <div class="title-top anim d1">
+      <span class="kicker">A Talk on First Sentences</span>
+      <span class="kicker eyebrow-num">Craft &amp; Rhetoric · No. 01</span>
+    </div>
+    <div class="title-main">
+      <h1 class="display">
+        <span class="anim d1" style="display:block">The Art of the</span>
+        <span class="anim d2 line2" style="display:block"><span class="italic gold">Opening</span> Line</span>
+      </h1>
+      <hr class="hair-gold rule-anim" style="margin-top:4cqh; width:38cqw;">
+    </div>
+    <div class="title-meta anim d4">
+      <p class="body">On the outsized power of the sentence that must earn every one that follows — and how the greatest writers spend it.</p>
+      <div class="speaker">
+        <div class="name">Eleanor Vance</div>
+        <div class="role">Editor-at-Large, The Paris Quarterly</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. WHY OPENINGS MATTER -->
+  <section class="slide" id="s2">
+    <span class="kicker anim d1" style="margin-bottom:5cqh">Why the First Line Carries So Much</span>
+    <div class="two-up">
+      <div class="lead-head">
+        <h2 class="display anim d2">The reader<br>decides <span class="italic gold">early.</span></h2>
+        <p class="body anim d3" style="margin-top:4cqh; font-size:1.65cqw;">A first sentence is a contract offered in the dark. It sets the voice, plants a question, and quietly promises that the pages ahead are worth the trust. Get it right and the reader leans in; get it wrong and no plot will call them back.</p>
+      </div>
+      <div class="stat-block">
+        <div class="stat anim d3">
+          <div class="num">8<span style="font-size:3cqw;"> sec</span></div>
+          <div class="lbl">is roughly how long a browser lingers on an unfamiliar page before deciding to keep reading.</div>
+        </div>
+        <hr class="hair">
+        <div class="stat anim d4">
+          <div class="num">1<span style="font-size:3cqw;"> sentence</span></div>
+          <div class="lbl">is all Melville, Austen, and Kafka needed to make their books unforgettable before the plot began.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. PULL QUOTE -->
+  <section class="slide" id="s3">
+    <div class="quote-mark anim d1">&ldquo;</div>
+    <blockquote class="pullquote anim d2">Many years later, as he faced the firing squad, Colonel Aureliano Buendía was to remember that distant afternoon when his father took him to discover ice.</blockquote>
+    <div class="attr anim d4">
+      <hr class="hair-gold rule-anim" style="width:8cqw; margin:0 auto 2.5cqh;">
+      <div class="who">Gabriel García Márquez</div>
+      <div class="work">One Hundred Years of Solitude · 1967</div>
+    </div>
+  </section>
+
+  <!-- 4. TECHNIQUES -->
+  <section class="slide" id="s4">
+    <div class="section-head">
+      <span class="kicker anim d1">The Anatomy</span>
+      <h2 class="display anim d2">Three things a great opening does at once</h2>
+    </div>
+    <div class="tech-list">
+      <div class="tech anim d3">
+        <span class="idx">i.</span>
+        <h3>It fixes a <span class="gold">voice</span></h3>
+        <p>Before we know the story, we know who is telling it — the wry, the grieving, the unreliable. Tone is the first fact a reader learns, and it colours everything after.</p>
+      </div>
+      <div class="tech anim d4">
+        <span class="idx">ii.</span>
+        <h3>It opens a <span class="gold">tension</span></h3>
+        <p>A firing squad, a scandal, a body. The line withholds as much as it reveals, leaving a gap the reader is compelled to close by turning the page.</p>
+      </div>
+      <div class="tech anim d5">
+        <span class="idx">iii.</span>
+        <h3>It makes a <span class="gold">promise</span></h3>
+        <p>Wit, grandeur, dread — whatever the sentence performs, it vows to keep performing. The opening is a sample of the whole, offered up front and in good faith.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. TWO-COLUMN CONTRAST -->
+  <section class="slide" id="s5">
+    <span class="kicker anim d1" style="margin-bottom:5cqh">Two Ways In</span>
+    <div class="contrast">
+      <div class="col anim d2">
+        <span class="tag">The Overture</span>
+        <h3>Announce the <span class="gold">theme</span></h3>
+        <p class="ex">&ldquo;It is a truth universally acknowledged, that a single man in possession of a good fortune, must be in want of a wife.&rdquo;</p>
+        <div class="ex-src">Jane Austen · Pride and Prejudice, 1813</div>
+        <p>The whole novel's irony arrives in the first breath. The sentence states a social law only to spend three hundred pages puncturing it.</p>
+      </div>
+      <div class="col-divider anim d3"></div>
+      <div class="col anim d3">
+        <span class="tag">The Whisper</span>
+        <h3>Offer a <span class="gold">hand</span></h3>
+        <p class="ex">&ldquo;Call me Ishmael.&rdquo;</p>
+        <div class="ex-src">Herman Melville · Moby-Dick, 1851</div>
+        <p>Three words, an introduction and a mystery in one. It is intimate and evasive at once — a name offered, but perhaps not the true one.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. CLOSING -->
+  <section class="slide" id="s6">
+    <span class="kicker anim d1" style="margin-bottom:4cqh">In Closing</span>
+    <div class="close-head">
+      <h2 class="display anim d2">Write the line<br>that <span class="italic gold">earns</span> the next.</h2>
+    </div>
+    <p class="close-body anim d3">Every sentence after the first has an unfair advantage: momentum. The opening has none. It must generate its own — a small engine of voice and question that turns the very first page for you. Spend it well.</p>
+    <div class="close-sign anim d4">
+      <span class="name">Thank you.</span>
+      <span class="thin"></span>
+    </div>
+    <div class="footer-mark">The Art of the Opening Line</div>
+  </section>
+
+  <div class="counter" id="counter"></div>
+</div></div>
+
+<script>
+  const stageEl = document.querySelector('.stage');
+  function fitStage(){ const s = Math.min(innerWidth/1920, innerHeight/1080); if(stageEl) stageEl.style.setProperty('--vizscale', s); }
+  addEventListener('resize', fitStage); fitStage();
+  let cur = 0;
+  const slides = () => Array.from(document.querySelectorAll('.slide'));
+  const counter = document.getElementById('counter');
+  function render() {
+    const all = slides();
+    all.forEach((s, n) => s.classList.toggle('active', n === cur));
+    if (counter) counter.textContent = (cur + 1) + ' / ' + all.length;
+  }
+  window.goToSlide = function (i) {
+    const all = slides();
+    cur = Math.max(0, Math.min(i, all.length - 1));
+    render();
+  };
+  addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') goToSlide(cur + 1);
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') goToSlide(cur - 1);
+  });
+  const init = slides().findIndex((s) => s.classList.contains('active'));
+  cur = init < 0 ? 0 : init;
+  render();
+</script>
+</body>
+</html>

@@ -150,7 +150,7 @@ If the user chooses to commit and push:
 1. Review `git status` and the final diff so only intended comment-response changes are included.
 2. Ask for or propose a concise commit message if one is not already clear; preserve the `Other...` option for custom commit instructions.
 3. Stage the intended changes, commit in a non-interactive command, and push the current branch to `origin`.
-4. Include `Co-Authored-By: Oz <oz-agent@warp.dev>` in the commit message.
+4. Include `Co-Authored-By: Warp Agent <agent@warp.dev>` in the commit message (never in a PR description), and do not add it again if the commit already has one.
 5. If commit or push fails, stop before posting GitHub replies and report the failure.
 
 ## GitHub reply and resolution preview

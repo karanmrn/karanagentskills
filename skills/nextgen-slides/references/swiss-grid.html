@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Principles of Good Typography — A Swiss Lecture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=Archivo+Narrow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #d8d8d4; }
+
+  :root {
+    --ink: #111111;
+    --paper: #ffffff;
+    --red: #e2231a;
+    --grey: #8a8a86;
+    --line: #d5d5d1;
+    --disp: 'Archivo', system-ui, sans-serif;
+    --narrow: 'Archivo Narrow', 'Archivo', sans-serif;
+  }
+
+  .viewport { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+  .stage {
+    position: relative; width: 1920px; height: 1080px; flex: none; overflow: hidden;
+    container-type: size;
+    transform: scale(var(--vizscale, 1)); transform-origin: center center;
+    background: var(--paper); color: var(--ink);
+    font-family: var(--disp);
+    box-shadow: 0 3cqw 8cqw rgba(0,0,0,.28);
+  }
+
+  .slide {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .5s ease;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 6.2cqh 5cqw 5.4cqh;
+  }
+  .slide.active { opacity: 1; visibility: visible; pointer-events: auto; }
+
+  /* --- shared editorial chrome --- */
+  .toprule, .botrule {
+    position: absolute; left: 5cqw; right: 5cqw; height: 2px; background: var(--ink);
+  }
+  .toprule { top: 4.4cqh; }
+  .botrule { bottom: 4.4cqh; height: 1px; background: var(--line); }
+
+  .runhead {
+    position: absolute; top: 5.4cqh; left: 5cqw; right: 5cqw;
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-family: var(--narrow); font-size: 1.15cqw; letter-spacing: .28em;
+    text-transform: uppercase; color: var(--ink);
+  }
+  .runhead .mid { color: var(--grey); }
+  .runhead .red { color: var(--red); }
+
+  .foot {
+    position: absolute; bottom: 5.2cqh; left: 5cqw; right: 5cqw;
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-family: var(--narrow); font-size: 1.05cqw; letter-spacing: .26em;
+    text-transform: uppercase; color: var(--grey);
+  }
+
+  .idx { font-family: var(--narrow); font-size: 1.15cqw; letter-spacing: .24em;
+         color: var(--red); text-transform: uppercase; }
+  .kicker { font-family: var(--narrow); font-size: 1.3cqw; letter-spacing: .3em;
+            text-transform: uppercase; color: var(--grey); }
+
+  .counter {
+    position: absolute; bottom: 5.2cqh; left: 50%; transform: translateX(-50%);
+    font-family: var(--narrow); font-size: 1.05cqw; letter-spacing: .24em; color: var(--ink);
+  }
+
+  /* entrance */
+  @keyframes rise { from { opacity: 0; transform: translateY(1.6cqh); } to { opacity: 1; transform: none; } }
+  @keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  .slide.active .anim { animation: rise .62s cubic-bezier(.2,.7,.2,1) both; }
+  .slide.active .anim2 { animation: rise .62s cubic-bezier(.2,.7,.2,1) .09s both; }
+  .slide.active .anim3 { animation: rise .62s cubic-bezier(.2,.7,.2,1) .18s both; }
+  .slide.active .anim4 { animation: rise .62s cubic-bezier(.2,.7,.2,1) .27s both; }
+  .slide.active .growx { transform-origin: left center; animation: grow .7s cubic-bezier(.2,.7,.2,1) .15s both; }
+
+  /* ============ SLIDE 1 — TITLE ============ */
+  .s-title { padding-top: 0; padding-bottom: 0; justify-content: center; }
+  .s-title .lede {
+    position: absolute; top: 12cqh; left: 5cqw;
+    font-family: var(--narrow); font-size: 1.5cqw; letter-spacing: .32em;
+    text-transform: uppercase; color: var(--ink);
+  }
+  .s-title .lede b { color: var(--red); font-weight: 700; }
+  .bighead {
+    font-weight: 800; font-size: 12.6cqw; line-height: .9; letter-spacing: -.02em;
+    text-transform: uppercase;
+  }
+  .bighead .thin { font-weight: 400; }
+  .bighead .red { color: var(--red); }
+  .s-title .credit {
+    position: absolute; bottom: 11cqh; left: 5cqw; right: 5cqw;
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 2cqw;
+    border-top: 2px solid var(--ink); padding-top: 1.6cqh;
+  }
+  .credit .cell .n { font-family: var(--narrow); font-size: 1cqw; letter-spacing: .26em;
+                     text-transform: uppercase; color: var(--red); }
+  .credit .cell .v { font-size: 1.5cqw; font-weight: 500; margin-top: .4cqh; }
+
+  /* ============ generic content headline ============ */
+  .headline { font-weight: 800; font-size: 6.6cqw; line-height: .92; letter-spacing: -.015em;
+              text-transform: uppercase; max-width: 20ch; }
+  .headline .red { color: var(--red); }
+  .lead { font-size: 1.9cqw; line-height: 1.42; max-width: 46ch; color: var(--ink); }
+
+  /* ============ SLIDE 2 — HIERARCHY ============ */
+  .s-hier { display: grid; grid-template-columns: 1fr 1fr; gap: 4cqw; align-content: center; }
+  .s-hier .left { display: flex; flex-direction: column; justify-content: center; gap: 2.4cqh; }
+  .hstack { border-left: 3px solid var(--ink); padding-left: 1.6cqw; }
+  .hstack .l1 { font-weight: 800; font-size: 3.4cqw; line-height: 1; letter-spacing: -.01em; }
+  .hstack .l2 { font-weight: 600; font-size: 1.9cqw; margin-top: .8cqh; }
+  .hstack .l3 { font-size: 1.25cqw; line-height: 1.5; color: var(--grey); margin-top: .8cqh; max-width: 40ch; }
+  .hstack .l3 b { color: var(--ink); font-weight: 600; }
+  .s-hier .rank { display: flex; flex-direction: column; justify-content: center; gap: 1.2cqh; }
+  .rankrow { display: grid; grid-template-columns: 3.2cqw 1fr auto; align-items: center; gap: 1.4cqw;
+             border-bottom: 1px solid var(--line); padding-bottom: 1.2cqh; }
+  .rankrow .no { font-family: var(--narrow); font-size: 1.15cqw; letter-spacing: .2em; color: var(--red); }
+  .rankrow .nm { font-family: var(--narrow); font-size: 1.35cqw; letter-spacing: .16em; text-transform: uppercase; }
+  .rankrow .wt { font-weight: 800; }
+  .rankrow .bar { position: relative; height: 1.1cqh; background: var(--ink); }
+
+  /* ============ SLIDE 3 — GRID ============ */
+  .s-grid .gridview {
+    position: absolute; inset: 12cqh 5cqw 11cqh; display: grid;
+    grid-template-columns: repeat(12, 1fr); gap: 1cqw;
+  }
+  .s-grid .col { background: rgba(226,35,26,.07); border-left: 1px solid rgba(226,35,26,.35);
+                 border-right: 1px solid rgba(226,35,26,.35); }
+  .s-grid .baselines {
+    position: absolute; inset: 12cqh 5cqw 11cqh; pointer-events: none;
+    background-image: repeating-linear-gradient(to bottom, transparent 0, transparent calc(3cqh - 1px), var(--line) calc(3cqh - 1px), var(--line) 3cqh);
+  }
+  .s-grid .overlay {
+    position: absolute; inset: 12cqh 5cqw 11cqh; display: grid;
+    grid-template-columns: repeat(12, 1fr); gap: 1cqw; align-content: start;
+  }
+  .s-grid .ol-head { grid-column: 1 / 8; font-weight: 800; font-size: 4.6cqw; line-height: .95;
+                     text-transform: uppercase; letter-spacing: -.015em; margin-top: 3cqh; }
+  .s-grid .ol-head .red { color: var(--red); }
+  .s-grid .ol-body { grid-column: 1 / 6; font-size: 1.4cqw; line-height: 1.5; margin-top: 3cqh; color: var(--ink); }
+  .s-grid .ol-side { grid-column: 9 / 13; font-family: var(--narrow); font-size: 1.2cqw;
+                     line-height: 1.6; margin-top: 3cqh; color: var(--grey); }
+  .s-grid .ol-side b { color: var(--red); display: block; letter-spacing: .18em; text-transform: uppercase;
+                       font-size: 1cqw; margin-bottom: .6cqh; }
+  .s-grid .colnum { grid-column: 1 / 13; display: grid; grid-template-columns: repeat(12, 1fr); gap: 1cqw;
+                    font-family: var(--narrow); font-size: .95cqw; color: var(--red); letter-spacing: .1em;
+                    align-self: end; margin-top: auto; }
+
+  /* ============ SLIDE 4 — MEASURE ============ */
+  .s-measure { display: grid; grid-template-columns: 1fr; align-content: center; gap: 3cqh; }
+  .s-measure .rowset { display: flex; flex-direction: column; gap: 2.6cqh; }
+  .mrow { display: grid; grid-template-columns: 12cqw 1fr; align-items: start; gap: 2cqw; }
+  .mrow .tag { font-family: var(--narrow); font-size: 1.1cqw; letter-spacing: .16em; text-transform: uppercase; }
+  .mrow .tag .st { display: block; font-weight: 800; font-size: 1.7cqw; letter-spacing: 0; margin-bottom: .4cqh; }
+  .mrow .tag.bad .st { color: var(--red); }
+  .mrow .tag.good .st { color: var(--ink); }
+  .mrow .tag.good .st::before { content: "✓ "; }
+  .mrow .tag.bad .st::before { content: "✕ "; }
+  .mrow .sample { font-size: 1.35cqw; line-height: 1.55; position: relative; }
+  .mrow .sample.narrow { max-width: 22ch; }
+  .mrow .sample.ideal { max-width: 62ch; border-left: 3px solid var(--red); padding-left: 1.4cqw; }
+  .mrow .sample.wide { max-width: 118ch; }
+
+  /* ============ SLIDE 5 — TYPE SCALE ============ */
+  .s-scale { display: grid; grid-template-columns: 26cqw 1fr; gap: 4cqw; align-content: center; }
+  .s-scale .info { display: flex; flex-direction: column; justify-content: center; gap: 2cqh; }
+  .s-scale .ratio { font-weight: 800; font-size: 8cqw; line-height: .9; color: var(--red); letter-spacing: -.02em; }
+  .s-scale .ratio small { display: block; font-family: var(--narrow); font-size: 1.3cqw; letter-spacing: .24em;
+                          text-transform: uppercase; color: var(--ink); margin-top: 1cqh; }
+  .s-scale .note { font-size: 1.3cqw; line-height: 1.5; color: var(--grey); max-width: 30ch; }
+  .s-scale .note b { color: var(--ink); }
+  .s-scale .ladder { display: flex; flex-direction: column; justify-content: center; gap: .4cqh; }
+  .step { display: grid; grid-template-columns: 7cqw 1fr; align-items: baseline; gap: 1.5cqw;
+          border-bottom: 1px solid var(--line); padding: .5cqh 0; }
+  .step .px { font-family: var(--narrow); font-size: 1cqw; letter-spacing: .1em; color: var(--red); text-align: right; }
+  .step .spec { font-weight: 700; line-height: 1; letter-spacing: -.01em; white-space: nowrap; }
+  .step.s1 .spec { font-size: 5.4cqw; }
+  .step.s2 .spec { font-size: 3.9cqw; }
+  .step.s3 .spec { font-size: 2.8cqw; }
+  .step.s4 .spec { font-size: 2cqw; }
+  .step.s5 .spec { font-size: 1.45cqw; font-weight: 500; }
+  .step.s6 .spec { font-size: 1.05cqw; font-weight: 500; color: var(--grey); }
+
+  /* ============ SLIDE 6 — CONTRAST / BIG STAT ============ */
+  .s-stat { display: grid; grid-template-columns: 1.05fr .95fr; gap: 4cqw; align-content: center; }
+  .s-stat .big { font-weight: 900; font-size: 21cqw; line-height: .82; letter-spacing: -.03em; color: var(--red); }
+  .s-stat .big span { color: var(--ink); }
+  .s-stat .rt { display: flex; flex-direction: column; justify-content: center; gap: 2.2cqh; }
+  .s-stat .rt .h { font-weight: 800; font-size: 3.2cqw; line-height: 1; text-transform: uppercase; letter-spacing: -.01em; }
+  .s-stat .rt .p { font-size: 1.5cqw; line-height: 1.5; max-width: 40ch; color: var(--ink); }
+  .s-stat .rt .p b { color: var(--red); }
+  .s-stat .rt .cap { font-family: var(--narrow); font-size: 1cqw; letter-spacing: .2em; text-transform: uppercase; color: var(--grey); }
+
+  /* ============ SLIDE 7 — MANIFESTO / CLOSING ============ */
+  .s-close { justify-content: center; }
+  .s-close .manifesto {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 2.6cqh 5cqw;
+  }
+  .s-close .mhead { grid-column: 1 / 3; font-weight: 800; font-size: 5.6cqw; line-height: .95;
+                    text-transform: uppercase; letter-spacing: -.015em; margin-bottom: 1.4cqh; }
+  .s-close .mhead .red { color: var(--red); }
+  .mitem { display: grid; grid-template-columns: 3cqw 1fr; gap: 1.2cqw; align-items: start;
+           border-top: 1px solid var(--line); padding-top: 1.4cqh; }
+  .mitem .n { font-family: var(--narrow); font-size: 1.1cqw; letter-spacing: .16em; color: var(--red); }
+  .mitem .t { font-size: 1.55cqw; line-height: 1.4; }
+  .mitem .t b { font-weight: 700; }
+  .s-close .sign {
+    position: absolute; bottom: 6.4cqh; left: 5cqw; right: 5cqw;
+    display: flex; justify-content: space-between; align-items: baseline;
+    border-top: 2px solid var(--ink); padding-top: 1.4cqh;
+    font-family: var(--narrow); font-size: 1.2cqw; letter-spacing: .24em; text-transform: uppercase;
+  }
+  .s-close .sign .red { color: var(--red); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .slide .anim, .slide .anim2, .slide .anim3, .slide .anim4, .slide .growx { animation: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="viewport"><div class="stage">
+
+  <!-- ===== SLIDE 1 — TITLE ===== -->
+  <section class="slide active s-title">
+    <div class="toprule"></div>
+    <div class="lede anim">A Lecture in <b>Six Parts</b> — Zürich School Method</div>
+    <h1 class="bighead">
+      <span class="anim">Principles</span><br>
+      <span class="thin anim2">of&nbsp;good</span><br>
+      <span class="red anim3">Typography</span>
+    </h1>
+    <div class="credit anim4">
+      <div class="cell"><div class="n">Field</div><div class="v">Graphic Design</div></div>
+      <div class="cell"><div class="n">Method</div><div class="v">Grid Systems</div></div>
+      <div class="cell"><div class="n">Runtime</div><div class="v">Six Slides</div></div>
+      <div class="cell"><div class="n">Set In</div><div class="v">Archivo</div></div>
+    </div>
+    <div class="foot">
+      <span>Studio 01 / Typographic Order</span>
+      <span>MMXXVI</span>
+    </div>
+  </section>
+
+  <!-- ===== SLIDE 2 — HIERARCHY ===== -->
+  <section class="slide s-hier">
+    <div class="runhead"><span>01 — Hierarchy</span><span class="mid">The Reader's Path</span><span class="red">●</span></div>
+    <div class="left">
+      <div class="idx anim">01 / Hierarchy</div>
+      <h2 class="headline anim2">Guide the<br><span class="red">eye</span> before<br>the mind.</h2>
+      <p class="lead anim3">Hierarchy is the order in which the eye consumes a page. Size, weight, space and colour rank each element so the reader never has to decide what matters — the page has already decided.</p>
+    </div>
+    <div class="rank">
+      <div class="hstack anim2">
+        <div class="l1">Headline</div>
+        <div class="l2">Deck / standfirst</div>
+        <div class="l3">Body text carries the argument. It sits <b>quiet and even</b> beneath the louder ranks, set at a comfortable measure so nothing competes for the same level of attention.</div>
+      </div>
+      <div class="rankrow anim3"><span class="no">01</span><span class="nm wt">Primary</span><span class="bar" style="width:100%"></span></div>
+      <div class="rankrow anim3"><span class="no">02</span><span class="nm">Secondary</span><span class="bar" style="width:66%"></span></div>
+      <div class="rankrow anim4"><span class="no">03</span><span class="nm">Body</span><span class="bar" style="width:42%"></span></div>
+      <div class="rankrow anim4"><span class="no">04</span><span class="nm">Caption</span><span class="bar" style="width:24%"></span></div>
+    </div>
+    <div class="foot"><span>Principles of Good Typography</span><span>Contrast, Not Decoration</span></div>
+  </section>
+
+  <!-- ===== SLIDE 3 — THE GRID (visible) ===== -->
+  <section class="slide s-grid">
+    <div class="runhead"><span>02 — The Grid</span><span class="mid">Twelve Columns · Baseline of 3</span><span class="red">●</span></div>
+    <div class="baselines anim"></div>
+    <div class="gridview">
+      <div class="col growx"></div><div class="col growx"></div><div class="col growx"></div>
+      <div class="col growx"></div><div class="col growx"></div><div class="col growx"></div>
+      <div class="col growx"></div><div class="col growx"></div><div class="col growx"></div>
+      <div class="col growx"></div><div class="col growx"></div><div class="col growx"></div>
+    </div>
+    <div class="overlay">
+      <h2 class="ol-head anim2">The grid is<br>the <span class="red">invisible</span><br>architecture.</h2>
+      <p class="ol-body anim3">Every element aligns to a shared field of columns and baselines. The structure you see printed in red here is normally silent — but it governs each margin, each break, each interval. Order is not restriction; it is the freedom to place things with reason.</p>
+      <div class="ol-side anim3"><b>Read This Frame</b>Twelve columns, a one-cqw gutter, and a baseline set every three units. Nothing floats. Every edge answers to a line you could name.</div>
+      <div class="colnum anim4">
+        <span>01</span><span>02</span><span>03</span><span>04</span><span>05</span><span>06</span>
+        <span>07</span><span>08</span><span>09</span><span>10</span><span>11</span><span>12</span>
+      </div>
+    </div>
+    <div class="foot"><span>Principles of Good Typography</span><span>Müller-Brockmann, after 1961</span></div>
+  </section>
+
+  <!-- ===== SLIDE 4 — MEASURE ===== -->
+  <section class="slide s-measure">
+    <div class="runhead"><span>03 — Measure</span><span class="mid">Line Length &amp; The Reading Rhythm</span><span class="red">●</span></div>
+    <div class="idx anim" style="margin-bottom:1.4cqh">03 / Measure</div>
+    <div class="rowset">
+      <div class="mrow anim2">
+        <div class="tag bad"><span class="st">Too Narrow</span>~ 28 characters</div>
+        <p class="sample narrow">A column set too tight fractures the sentence. The eye snaps back before it gains momentum, and rhythm is lost.</p>
+      </div>
+      <div class="mrow anim3">
+        <div class="tag good"><span class="st">Ideal</span>45–75 characters</div>
+        <p class="sample ideal">Between forty-five and seventy-five characters per line, the eye travels a comfortable arc and returns without hunting for the next row. This is the measure that reads as effortless — long enough for cadence, short enough to hold the line.</p>
+      </div>
+      <div class="mrow anim4">
+        <div class="tag bad"><span class="st">Too Wide</span>~ 110 characters</div>
+        <p class="sample wide">When a line runs on far past its useful length, the return sweep grows unreliable and the reader loses the row — doubling back or skipping ahead — because the horizontal distance has simply outrun the eye's ability to find where the following line begins.</p>
+      </div>
+    </div>
+    <div class="foot"><span>Principles of Good Typography</span><span>The 45–75 Rule</span></div>
+  </section>
+
+  <!-- ===== SLIDE 5 — TYPE SCALE ===== -->
+  <section class="slide s-scale">
+    <div class="runhead"><span>04 — Scale</span><span class="mid">A Modular Ratio · 1.333 “Perfect Fourth”</span><span class="red">●</span></div>
+    <div class="info">
+      <div class="idx anim">04 / Type Scale</div>
+      <div class="ratio anim2">1.333<small>The Perfect Fourth</small></div>
+      <p class="note anim3">One ratio generates the whole system. Each size is the last multiplied by <b>1.333</b>, so every step relates by proportion — not by guesswork. Sizes shown are the real pixel values on this 1920-wide stage.</p>
+    </div>
+    <div class="ladder">
+      <div class="step s1 anim2"><span class="px">104 px</span><span class="spec">Display Aa</span></div>
+      <div class="step s2 anim2"><span class="px">78 px</span><span class="spec">Heading Aa</span></div>
+      <div class="step s3 anim3"><span class="px">55 px</span><span class="spec">Subhead Aa</span></div>
+      <div class="step s4 anim3"><span class="px">40 px</span><span class="spec">Lead Aa</span></div>
+      <div class="step s5 anim4"><span class="px">28 px</span><span class="spec">Body — set for reading</span></div>
+      <div class="step s6 anim4"><span class="px">21 px</span><span class="spec">Caption / metadata label</span></div>
+    </div>
+    <div class="foot"><span>Principles of Good Typography</span><span>base 21 × 1.333ⁿ</span></div>
+  </section>
+
+  <!-- ===== SLIDE 6 — CONTRAST BIG STAT ===== -->
+  <section class="slide s-stat">
+    <div class="runhead"><span>05 — Contrast</span><span class="mid">Difference Does The Work</span><span class="red">●</span></div>
+    <div class="big anim">95<span>%</span></div>
+    <div class="rt">
+      <div class="idx anim2">05 / Contrast</div>
+      <h2 class="rt-h h anim2">Make it<br>different, or<br>make it <span style="color:var(--red)">gone.</span></h2>
+      <p class="p anim3">Roughly <b>95% of what we read online is set in type</b> — which means the typographic decisions are the design. Weak contrast reads as no contrast: two headings a hair apart in size look like a mistake, not a system.</p>
+      <p class="cap anim4">If two elements are not the same, make them clearly different.</p>
+    </div>
+    <div class="foot"><span>Principles of Good Typography</span><span>Contrast: Size · Weight · Space · Colour</span></div>
+  </section>
+
+  <!-- ===== SLIDE 7 — MANIFESTO / CLOSING ===== -->
+  <section class="slide s-close">
+    <div class="toprule"></div>
+    <div class="runhead"><span>06 — Manifesto</span><span class="mid">Six Lines To Keep</span><span class="red">●</span></div>
+    <div class="manifesto">
+      <h2 class="mhead anim">Set with<br><span class="red">intention.</span></h2>
+      <div class="mitem anim2"><span class="n">01</span><span class="t"><b>Order over ornament.</b> Structure carries meaning; decoration only borrows it.</span></div>
+      <div class="mitem anim2"><span class="n">02</span><span class="t"><b>Choose the grid</b> before the first word — then let every element answer to it.</span></div>
+      <div class="mitem anim3"><span class="n">03</span><span class="t"><b>Respect the measure.</b> Reading is a rhythm; protect the line's length.</span></div>
+      <div class="mitem anim3"><span class="n">04</span><span class="t"><b>One scale, one voice.</b> Let a single ratio speak for the whole system.</span></div>
+      <div class="mitem anim4"><span class="n">05</span><span class="t"><b>Contrast with courage.</b> If two things differ, make them differ clearly.</span></div>
+      <div class="mitem anim4"><span class="n">06</span><span class="t"><b>White space is content.</b> What you leave empty gives the rest its meaning.</span></div>
+    </div>
+    <div class="sign">
+      <span>End / Principles of Good Typography</span>
+      <span class="red">Good Design Is As Little Design As Possible</span>
+    </div>
+  </section>
+
+  <div class="counter" id="counter"></div>
+</div></div>
+
+<script>
+  const stageEl = document.querySelector('.stage');
+  function fitStage(){ const s = Math.min(innerWidth/1920, innerHeight/1080); if(stageEl) stageEl.style.setProperty('--vizscale', s); }
+  addEventListener('resize', fitStage); fitStage();
+  let cur = 0;
+  const slides = () => Array.from(document.querySelectorAll('.slide'));
+  const counter = document.getElementById('counter');
+  function render() {
+    const all = slides();
+    all.forEach((s, n) => s.classList.toggle('active', n === cur));
+    if (counter) counter.textContent = (cur + 1) + ' / ' + all.length;
+  }
+  window.goToSlide = function (i) {
+    const all = slides();
+    cur = Math.max(0, Math.min(i, all.length - 1));
+    render();
+  };
+  addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') goToSlide(cur + 1);
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') goToSlide(cur - 1);
+  });
+  const init = slides().findIndex((s) => s.classList.contains('active'));
+  cur = init < 0 ? 0 : init;
+  render();
+</script>
+</body>
+</html>

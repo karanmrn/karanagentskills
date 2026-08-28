@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Golden Age of Arcades — Insert Coin to Continue</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Righteous&family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #10102b; }
+
+  .viewport { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+  .stage {
+    position: relative; width: 1920px; height: 1080px; flex: none; overflow: hidden;
+    container-type: size; transform: scale(var(--vizscale, 1)); transform-origin: center center;
+    background: #fdf0d5;
+    font-family: 'Poppins', sans-serif;
+  }
+
+  .slide {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .5s ease;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 8cqh 9cqw;
+  }
+  .slide.active { opacity: 1; visibility: visible; pointer-events: auto; }
+
+  /* ---- palette ---- */
+  :root {
+    --pink: #ff5d8f;
+    --teal: #22b8b0;
+    --yellow: #ffcf3f;
+    --purple: #3d2b8c;
+    --cream: #fdf0d5;
+    --ink: #241a4d;
+  }
+
+  .display { font-family: 'Bungee', cursive; font-weight: 400; line-height: 0.98; letter-spacing: .5px; }
+  .righteous { font-family: 'Righteous', cursive; }
+
+  /* ---- decorative memphis shapes (shared) ---- */
+  .shape { position: absolute; pointer-events: none; z-index: 0; }
+  .dot { border-radius: 50%; }
+  .tri { width: 0; height: 0; }
+  .ring { border-radius: 50%; background: transparent; }
+  .content { position: relative; z-index: 3; }
+
+  /* squiggle stroke */
+  .squig { position: absolute; z-index: 1; pointer-events: none; }
+
+  /* Grain-ish subtle texture via repeating dots */
+  .stage::before {
+    content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+    background-image: radial-gradient(rgba(61,43,140,.06) 1.4px, transparent 1.5px);
+    background-size: 3.2cqw 3.2cqw;
+    opacity: .9;
+  }
+
+  /* =========================================================
+     SLIDE 1 — TITLE
+     ========================================================= */
+  #s1 { background:
+      radial-gradient(120% 120% at 15% 10%, #4a35a8 0%, #3d2b8c 40%, #2a1c66 100%); }
+  #s1 .content { display: flex; flex-direction: column; align-items: flex-start; }
+  #s1 .eyebrow {
+    display: inline-flex; align-items: center; gap: 1.2cqw;
+    background: var(--yellow); color: var(--purple);
+    font-weight: 800; letter-spacing: .35em; text-transform: uppercase;
+    font-size: 1.5cqw; padding: 1cqh 2cqw;
+    border: 0.4cqw solid var(--ink);
+    box-shadow: 0.7cqw 0.7cqh 0 var(--pink);
+    transform: rotate(-2deg);
+  }
+  #s1 h1 {
+    color: var(--cream);
+    font-size: 10.5cqw; line-height: 0.9;
+    margin-top: 4.5cqh; text-transform: uppercase;
+    text-shadow: 0.5cqw 0.6cqh 0 var(--pink), 1cqw 1.2cqh 0 var(--teal);
+  }
+  #s1 h1 .l2 { color: var(--yellow); text-shadow: 0.5cqw 0.6cqh 0 var(--teal), 1cqw 1.2cqh 0 var(--pink); }
+  #s1 .sub {
+    margin-top: 5cqh; max-width: 46ch;
+    color: #efe7ff; font-size: 2.2cqw; font-weight: 500; line-height: 1.4;
+  }
+  #s1 .credit {
+    margin-top: 4.5cqh; display: flex; align-items: center; gap: 1.5cqw;
+    color: var(--yellow); font-weight: 700; font-size: 1.5cqw; letter-spacing: .1em;
+  }
+  #s1 .coin {
+    width: 3cqw; height: 3cqw; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fff2c2, var(--yellow) 60%, #e0a800);
+    border: 0.35cqw solid var(--ink);
+    display: grid; place-items: center; color: var(--purple);
+    font-family: 'Bungee'; font-size: 1.4cqw; flex: none;
+    box-shadow: 0 0 0 0.3cqw rgba(255,207,63,.25);
+  }
+
+  /* =========================================================
+     SLIDE 2 — THE BOOM (big stat)
+     ========================================================= */
+  #s2 { background: var(--teal); }
+  #s2 .content { display: grid; grid-template-columns: 1.15fr 1fr; gap: 6cqw; align-items: center; }
+  .kicker {
+    font-weight: 800; text-transform: uppercase; letter-spacing: .3em;
+    font-size: 1.5cqw; color: var(--purple);
+    background: var(--yellow); align-self: start; display: inline-block;
+    padding: 0.8cqh 1.6cqw; border: 0.35cqw solid var(--ink);
+    box-shadow: 0.5cqw 0.6cqh 0 var(--ink);
+  }
+  #s2 .bignum {
+    color: var(--cream); font-size: 15cqw; line-height: 0.82; margin: 3.5cqh 0 1cqh;
+    text-shadow: 0.6cqw 0.7cqh 0 var(--purple);
+  }
+  #s2 .bignum small { font-size: 5cqw; display: block; color: var(--yellow); text-shadow: 0.4cqw 0.5cqh 0 var(--purple); }
+  #s2 .lede { color: #063d3a; font-size: 2cqw; font-weight: 600; max-width: 30ch; line-height: 1.4; }
+  #s2 .panel {
+    background: var(--cream); border: 0.5cqw solid var(--ink);
+    box-shadow: 1.1cqw 1.3cqh 0 var(--purple);
+    padding: 5cqh 3.5cqw; transform: rotate(2deg);
+  }
+  #s2 .panel h3 { font-family:'Righteous'; color: var(--pink); font-size: 2.6cqw; margin-bottom: 2.5cqh; }
+  #s2 .panel ul { list-style: none; display: flex; flex-direction: column; gap: 2cqh; }
+  #s2 .panel li { display: flex; gap: 1.5cqw; align-items: baseline; color: var(--ink); font-size: 1.7cqw; font-weight: 500; }
+  #s2 .panel li b { font-family:'Bungee'; color: var(--purple); font-size: 2.1cqw; min-width: 6.5ch; }
+
+  /* =========================================================
+     SLIDE 3 — THE ICONS (cards)
+     ========================================================= */
+  #s3 { background: #fbe3ef; }
+  #s3 h2 { text-align: center; color: var(--purple); font-size: 5cqw; text-transform: uppercase;
+           text-shadow: 0.35cqw 0.4cqh 0 var(--pink); }
+  #s3 .sub2 { text-align: center; color: var(--ink); font-size: 1.7cqw; font-weight: 600; margin-top: 1.5cqh; }
+  #s3 .cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 3.2cqw; margin-top: 5.5cqh; }
+  .card {
+    background: var(--cream); border: 0.5cqw solid var(--ink);
+    box-shadow: 0.9cqw 1.1cqh 0 var(--ink);
+    padding: 3.5cqh 2.4cqw 4cqh; display: flex; flex-direction: column; align-items: center; text-align: center;
+  }
+  .card:nth-child(1) { transform: rotate(-2.5deg); }
+  .card:nth-child(2) { transform: rotate(1.5deg); }
+  .card:nth-child(3) { transform: rotate(-1deg); }
+  .card .art { width: 11cqw; height: 11cqw; display: grid; place-items: center; margin-bottom: 2.5cqh; }
+  .card .name { font-family:'Bungee'; font-size: 2.3cqw; color: var(--purple); line-height: 1; }
+  .card .yr { font-weight: 800; color: var(--pink); font-size: 1.35cqw; letter-spacing: .2em; margin: 1cqh 0 2cqh; }
+  .card p { color: var(--ink); font-size: 1.4cqw; font-weight: 500; line-height: 1.45; }
+  .card .tag { margin-top: auto; padding-top: 2.2cqh; font-family:'Righteous'; font-size: 1.3cqw; }
+  .card:nth-child(1) .tag { color: var(--pink); }
+  .card:nth-child(2) .tag { color: var(--teal); }
+  .card:nth-child(3) .tag { color: var(--purple); }
+
+  /* pixel invader */
+  .invader { display: grid; grid-template-columns: repeat(11, 1fr); width: 100%; height: 100%; }
+  .invader i { }
+
+  /* =========================================================
+     SLIDE 4 — HIGH SCORE (stat leaderboard)
+     ========================================================= */
+  #s4 { background: #10102b; }
+  #s4::before { background-image: radial-gradient(rgba(255,255,255,.05) 1.4px, transparent 1.5px); }
+  #s4 .content { display: flex; flex-direction: column; }
+  #s4 .arcadehead { text-align: center; }
+  #s4 .arcadehead h2 { font-family:'Bungee'; color: var(--yellow); font-size: 6cqw; letter-spacing:.06em;
+    text-shadow: 0.4cqw 0.5cqh 0 var(--pink), 0.8cqw 1cqh 0 var(--teal); }
+  #s4 .arcadehead p { color: #9fb0ff; font-weight: 700; letter-spacing: .35em; text-transform: uppercase; font-size: 1.4cqw; margin-top: 1.5cqh; }
+  #s4 .board { margin-top: 4.5cqh; display: flex; flex-direction: column; gap: 1.6cqh; }
+  #s4 .row {
+    display: grid; grid-template-columns: 4cqw 1fr auto; align-items: center; gap: 2.5cqw;
+    background: rgba(255,255,255,.04); border: 0.2cqw solid rgba(255,255,255,.12);
+    padding: 2cqh 3cqw;
+  }
+  #s4 .row .rank { font-family:'Bungee'; font-size: 2.6cqw; color: var(--pink); }
+  #s4 .row .who { color: var(--cream); font-weight: 700; font-size: 2cqw; }
+  #s4 .row .who span { display: block; color: #8fa0e0; font-weight: 500; font-size: 1.2cqw; margin-top: .4cqh; letter-spacing: .04em; }
+  #s4 .row .score { font-family:'Bungee'; font-size: 2.8cqw; color: var(--yellow); }
+  #s4 .row:nth-child(1) { border-color: var(--yellow); box-shadow: 0 0 3cqw rgba(255,207,63,.2) inset; }
+  #s4 .row:nth-child(1) .rank { color: var(--yellow); }
+  #s4 .foot { text-align: center; color: #7f8fd0; font-size: 1.3cqw; font-weight: 500; margin-top: 3.5cqh; font-style: italic; }
+
+  /* =========================================================
+     SLIDE 5 — WHY THEY FADED (two-column / pull)
+     ========================================================= */
+  #s5 { background: var(--pink); }
+  #s5 .content { display: grid; grid-template-columns: 1fr 1fr; gap: 5cqw; align-items: center; }
+  #s5 .left h2 { color: var(--cream); font-size: 5.5cqw; text-transform: uppercase; line-height: .95;
+    text-shadow: 0.4cqw 0.5cqh 0 var(--purple); }
+  #s5 .left .quote {
+    margin-top: 4cqh; color: var(--purple); font-family:'Poppins'; font-style: italic; font-weight: 600;
+    font-size: 2.3cqw; line-height: 1.35; max-width: 24ch;
+    border-left: 0.7cqw solid var(--yellow); padding-left: 2cqw;
+  }
+  #s5 .left .who { margin-top: 2cqh; font-weight: 800; color: var(--cream); font-size: 1.3cqw; letter-spacing:.2em; text-transform: uppercase; padding-left: 2.7cqw; }
+  #s5 .reasons { display: flex; flex-direction: column; gap: 2.4cqh; }
+  #s5 .reason {
+    background: var(--cream); border: 0.45cqw solid var(--ink);
+    box-shadow: 0.7cqw 0.8cqh 0 var(--purple);
+    padding: 2.6cqh 2.8cqw; display: flex; gap: 2cqw; align-items: flex-start;
+  }
+  #s5 .reason .n { font-family:'Bungee'; font-size: 3cqw; color: var(--teal); line-height: 1; flex: none; }
+  #s5 .reason h4 { color: var(--purple); font-size: 1.9cqw; font-family:'Righteous'; margin-bottom: .8cqh; }
+  #s5 .reason p { color: var(--ink); font-size: 1.4cqw; font-weight: 500; line-height: 1.4; }
+
+  /* =========================================================
+     SLIDE 6 — CLOSING (insert coin)
+     ========================================================= */
+  #s6 { background: radial-gradient(120% 130% at 50% 20%, #4a35a8 0%, #2a1c66 60%, #17103f 100%); }
+  #s6 .content { text-align: center; display: flex; flex-direction: column; align-items: center; }
+  #s6 .press {
+    color: var(--yellow); font-family:'Bungee'; font-size: 2cqw; letter-spacing:.3em; text-transform: uppercase;
+    animation: blink 1.1s steps(1) infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+  #s6 h2 {
+    color: var(--cream); font-family:'Bungee'; font-size: 8.5cqw; margin-top: 3cqh; line-height: .95; text-transform: uppercase;
+    text-shadow: 0.5cqw 0.6cqh 0 var(--pink), 1cqw 1.2cqh 0 var(--teal);
+  }
+  #s6 h2 em { font-style: normal; color: var(--yellow); }
+  #s6 p { color: #d8ccff; font-size: 2cqw; font-weight: 500; margin-top: 4cqh; max-width: 40ch; line-height: 1.45; }
+  #s6 .coinbtn {
+    margin-top: 5.5cqh; display: inline-flex; align-items: center; gap: 1.6cqw;
+    background: var(--pink); color: var(--cream); font-family:'Bungee'; font-size: 2cqw;
+    padding: 2cqh 4cqw; border: 0.45cqw solid var(--ink);
+    box-shadow: 0.8cqw 1cqh 0 var(--yellow); text-transform: uppercase; letter-spacing:.05em;
+  }
+  #s6 .coinbtn .c {
+    width: 3cqw; height: 3cqw; border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, #fff2c2, var(--yellow) 60%, #e0a800);
+    border: 0.3cqw solid var(--ink); display:grid; place-items:center; color: var(--purple); font-size: 1.3cqw;
+  }
+
+  /* =========================================================
+     COUNTER
+     ========================================================= */
+  .counter {
+    position: absolute; bottom: 3cqh; right: 3.5cqw; z-index: 20;
+    font-family: 'Bungee', cursive; font-size: 1.3cqw; color: var(--purple);
+    background: var(--yellow); padding: 0.7cqh 1.5cqw;
+    border: 0.3cqw solid var(--ink); box-shadow: 0.35cqw 0.45cqh 0 var(--ink);
+    letter-spacing: .1em;
+  }
+
+  /* entrance animation */
+  @media (prefers-reduced-motion: no-preference) {
+    .slide.active .content > * { animation: pop .55s cubic-bezier(.2,.9,.3,1.3) backwards; }
+    .slide.active .content > *:nth-child(2) { animation-delay: .08s; }
+    .slide.active .content > *:nth-child(3) { animation-delay: .16s; }
+    .slide.active .content > *:nth-child(4) { animation-delay: .24s; }
+    .slide.active .card { animation: pop .6s cubic-bezier(.2,.9,.3,1.3) backwards; }
+    .slide.active .card:nth-child(2){ animation-delay:.1s; }
+    .slide.active .card:nth-child(3){ animation-delay:.2s; }
+    .slide.active #s4 .row, #s4.slide.active .row { }
+  }
+  @keyframes pop { from { opacity: 0; transform: translateY(3cqh) scale(.96); } to { opacity:1; transform: none; } }
+</style>
+</head>
+<body>
+<div class="viewport"><div class="stage">
+
+  <!-- ================= SLIDE 1 : TITLE ================= -->
+  <section class="slide active" id="s1">
+    <!-- decorative -->
+    <div class="shape dot" style="width:9cqw;height:9cqw;background:var(--pink);top:-3cqh;right:12cqw;"></div>
+    <div class="shape ring" style="width:14cqw;height:14cqw;border:1.4cqw solid var(--teal);bottom:-5cqh;right:6cqw;"></div>
+    <div class="shape dot" style="width:2cqw;height:2cqw;background:var(--yellow);top:20cqh;right:32cqw;"></div>
+    <div class="shape dot" style="width:1.3cqw;height:1.3cqw;background:var(--yellow);top:70cqh;left:6cqw;"></div>
+    <div class="shape tri" style="border-left:3cqw solid transparent;border-right:3cqw solid transparent;border-bottom:5cqw solid var(--yellow);top:8cqh;right:38cqw;transform:rotate(18deg);"></div>
+    <svg class="squig" width="380" height="120" viewBox="0 0 380 120" style="bottom:8cqh;right:30cqw;width:22cqw;">
+      <path d="M5 60 Q 45 5 85 60 T 165 60 T 245 60 T 325 60" fill="none" stroke="#ff5d8f" stroke-width="12" stroke-linecap="round"/>
+    </svg>
+
+    <div class="content">
+      <span class="eyebrow">◆ Player One Presents</span>
+      <h1 class="display">The Golden<br><span class="l2">Age of</span><br>Arcades</h1>
+      <p class="sub">Neon cabinets, sticky joysticks, and the glorious clatter of quarters — how the 1980s arcade turned pocket change into pop culture.</p>
+      <div class="credit"><span class="coin">25¢</span> A pop-culture deep dive · Level 1</div>
+    </div>
+    <div class="counter" id="counter"></div>
+  </section>
+
+  <!-- ================= SLIDE 2 : THE BOOM ================= -->
+  <section class="slide" id="s2">
+    <div class="shape dot" style="width:7cqw;height:7cqw;background:var(--pink);top:-2cqh;left:-2cqw;"></div>
+    <div class="shape tri" style="border-left:4cqw solid transparent;border-right:4cqw solid transparent;border-bottom:7cqw solid var(--purple);bottom:-3cqh;left:38cqw;transform:rotate(-12deg);"></div>
+    <div class="shape dot" style="width:1.6cqw;height:1.6cqw;background:var(--yellow);top:14cqh;left:44cqw;"></div>
+
+    <div class="content">
+      <div>
+        <span class="kicker">The Quarter Economy</span>
+        <div class="bignum display">$8<small>Billion in quarters, 1982</small></div>
+        <p class="lede">At its peak, America fed arcade machines more coins than it spent on movie tickets and pop music — combined.</p>
+      </div>
+      <div class="panel">
+        <h3>By the numbers</h3>
+        <ul>
+          <li><b>32B</b> quarters dropped in a single year</li>
+          <li><b>13,000</b> full-scale arcades open in the U.S.</li>
+          <li><b>75%</b> of players aged 12 to 25</li>
+          <li><b>1.5M</b> cabinets shipped worldwide</li>
+        </ul>
+      </div>
+    </div>
+    <div class="counter"></div>
+  </section>
+
+  <!-- ================= SLIDE 3 : THE ICONS ================= -->
+  <section class="slide" id="s3">
+    <div class="shape dot" style="width:6cqw;height:6cqw;background:var(--teal);top:4cqh;left:5cqw;"></div>
+    <div class="shape ring" style="width:9cqw;height:9cqw;border:1.2cqw solid var(--yellow);bottom:4cqh;right:7cqw;"></div>
+    <div class="shape tri" style="border-left:2.5cqw solid transparent;border-right:2.5cqw solid transparent;border-bottom:4cqw solid var(--pink);top:8cqh;right:14cqw;transform:rotate(24deg);"></div>
+
+    <div class="content">
+      <h2 class="display">Meet the Legends</h2>
+      <p class="sub2">Three cabinets that turned the arcade into a cultural landmark.</p>
+      <div class="cards">
+        <div class="card">
+          <div class="art">
+            <!-- Pac-Man -->
+            <svg viewBox="0 0 100 100" width="100%" height="100%" aria-label="Pac-Man">
+              <path d="M50 50 L96 26 A50 50 0 1 0 96 74 Z" fill="#ffcf3f" stroke="#241a4d" stroke-width="4"/>
+              <circle cx="48" cy="26" r="6" fill="#241a4d"/>
+            </svg>
+          </div>
+          <div class="name">Pac-Man</div>
+          <div class="yr">1980 · NAMCO</div>
+          <p>The maze-chomping mascot that broke arcades wide open — and sold cereal, cartoons, and a hit single.</p>
+          <div class="tag">◆ Waka Waka Waka</div>
+        </div>
+        <div class="card">
+          <div class="art">
+            <!-- Donkey Kong barrel/character -->
+            <svg viewBox="0 0 100 100" width="100%" height="100%" aria-label="Donkey Kong">
+              <rect x="18" y="20" width="64" height="60" rx="10" fill="#8a4b1f" stroke="#241a4d" stroke-width="4"/>
+              <ellipse cx="50" cy="52" rx="20" ry="24" fill="#d98b3f"/>
+              <circle cx="42" cy="46" r="5" fill="#241a4d"/><circle cx="58" cy="46" r="5" fill="#241a4d"/>
+              <path d="M40 64 Q50 72 60 64" fill="none" stroke="#241a4d" stroke-width="4" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="name">Donkey Kong</div>
+          <div class="yr">1981 · NINTENDO</div>
+          <p>A carpenter named Jumpman climbed girders to save the day — and quietly launched the legend of Mario.</p>
+          <div class="tag">◆ How High Can You Get?</div>
+        </div>
+        <div class="card">
+          <div class="art">
+            <!-- Space Invader pixel alien -->
+            <div class="invader" aria-label="Space Invaders">
+              <svg viewBox="0 0 110 90" width="100%" height="100%">
+                <g fill="#22b8b0">
+                  <rect x="30" y="10" width="10" height="10"/><rect x="70" y="10" width="10" height="10"/>
+                  <rect x="40" y="20" width="10" height="10"/><rect x="60" y="20" width="10" height="10"/>
+                  <rect x="20" y="30" width="70" height="10"/>
+                  <rect x="10" y="40" width="20" height="10"/><rect x="40" y="40" width="30" height="10"/><rect x="80" y="40" width="20" height="10"/>
+                  <rect x="10" y="50" width="90" height="10"/>
+                  <rect x="20" y="60" width="10" height="10"/><rect x="80" y="60" width="10" height="10"/>
+                  <rect x="10" y="70" width="10" height="10"/><rect x="30" y="70" width="10" height="10"/><rect x="70" y="70" width="10" height="10"/><rect x="90" y="70" width="10" height="10"/>
+                </g>
+              </svg>
+            </div>
+          </div>
+          <div class="name">Space Invaders</div>
+          <div class="yr">1978 · TAITO</div>
+          <p>The alien onslaught that started it all — and reportedly caused a nationwide coin shortage in Japan.</p>
+          <div class="tag">◆ Defend the Earth</div>
+        </div>
+      </div>
+    </div>
+    <div class="counter"></div>
+  </section>
+
+  <!-- ================= SLIDE 4 : HIGH SCORE ================= -->
+  <section class="slide" id="s4">
+    <div class="shape dot" style="width:2cqw;height:2cqw;background:var(--pink);top:10cqh;left:8cqw;"></div>
+    <div class="shape dot" style="width:1.4cqw;height:1.4cqw;background:var(--teal);top:80cqh;right:12cqw;"></div>
+    <div class="shape dot" style="width:1.4cqw;height:1.4cqw;background:var(--yellow);top:22cqh;right:9cqw;"></div>
+
+    <div class="content">
+      <div class="arcadehead">
+        <h2>★ HIGH SCORES ★</h2>
+        <p>The Records That Made History</p>
+      </div>
+      <div class="board">
+        <div class="row">
+          <div class="rank">1ST</div>
+          <div class="who">Billy Mitchell <span>First perfect Pac-Man game — every dot, every ghost, 1999</span></div>
+          <div class="score">3,333,360</div>
+        </div>
+        <div class="row">
+          <div class="rank">2ND</div>
+          <div class="who">Steve Wiebe <span>Donkey Kong showdown that became a documentary</span></div>
+          <div class="score">1,064,500</div>
+        </div>
+        <div class="row">
+          <div class="rank">3RD</div>
+          <div class="who">Rebecca Heineman <span>1980 Space Invaders National Champion, age 16</span></div>
+          <div class="score">165,200</div>
+        </div>
+      </div>
+      <p class="foot">Enter your initials — AAA — and take your place in arcade eternity.</p>
+    </div>
+    <div class="counter"></div>
+  </section>
+
+  <!-- ================= SLIDE 5 : WHY THEY FADED ================= -->
+  <section class="slide" id="s5">
+    <div class="shape ring" style="width:12cqw;height:12cqw;border:1.4cqw solid var(--yellow);top:-4cqh;right:20cqw;"></div>
+    <div class="shape tri" style="border-left:3cqw solid transparent;border-right:3cqw solid transparent;border-bottom:5cqw solid var(--teal);bottom:6cqh;left:44cqw;transform:rotate(-20deg);"></div>
+    <div class="shape dot" style="width:1.6cqw;height:1.6cqw;background:var(--purple);top:12cqh;left:2cqw;"></div>
+
+    <div class="content">
+      <div class="left">
+        <h2 class="display">Game Over?</h2>
+        <p class="quote">"Why line up for quarters when the game lives in your living room?"</p>
+        <p class="who">— The console generation, circa 1985</p>
+      </div>
+      <div class="reasons">
+        <div class="reason"><div class="n">1</div><div><h4>The Home Console</h4><p>Atari and the Nintendo NES put the arcade on the TV — no coins, no closing time.</p></div></div>
+        <div class="reason"><div class="n">2</div><div><h4>The 1983 Crash</h4><p>A flood of low-quality games shattered player trust and gutted the whole industry overnight.</p></div></div>
+        <div class="reason"><div class="n">3</div><div><h4>Shrinking Storefronts</h4><p>Rising rents and thinning crowds turned neon palaces into forgotten mall corners.</p></div></div>
+      </div>
+    </div>
+    <div class="counter"></div>
+  </section>
+
+  <!-- ================= SLIDE 6 : CLOSING ================= -->
+  <section class="slide" id="s6">
+    <div class="shape dot" style="width:8cqw;height:8cqw;background:var(--pink);top:8cqh;left:10cqw;"></div>
+    <div class="shape ring" style="width:11cqw;height:11cqw;border:1.3cqw solid var(--teal);bottom:6cqh;right:12cqw;"></div>
+    <div class="shape tri" style="border-left:3cqw solid transparent;border-right:3cqw solid transparent;border-bottom:5cqw solid var(--yellow);top:14cqh;right:16cqw;transform:rotate(16deg);"></div>
+    <div class="shape dot" style="width:1.6cqw;height:1.6cqw;background:var(--yellow);bottom:20cqh;left:20cqw;"></div>
+
+    <div class="content">
+      <div class="press">Press Start</div>
+      <h2>Insert Coin<br><em>to Continue</em></h2>
+      <p>The cabinets went quiet, but the legend never did — barcades, retro revivals, and pixel nostalgia keep the quarter dropping. Ready Player One?</p>
+      <div class="coinbtn"><span class="c">25¢</span> Continue · 9</div>
+    </div>
+    <div class="counter"></div>
+  </section>
+
+</div></div>
+
+<script>
+  const stageEl = document.querySelector('.stage');
+  function fitStage(){ const s = Math.min(innerWidth/1920, innerHeight/1080); if(stageEl) stageEl.style.setProperty('--vizscale', s); }
+  addEventListener('resize', fitStage); fitStage();
+  let cur = 0;
+  const slides = () => Array.from(document.querySelectorAll('.slide'));
+  const counter = document.getElementById('counter');
+  function render() {
+    const all = slides();
+    all.forEach((s, n) => s.classList.toggle('active', n === cur));
+    document.querySelectorAll('.counter').forEach(c => { c.textContent = (cur + 1) + ' / ' + all.length; });
+  }
+  window.goToSlide = function (i) {
+    const all = slides();
+    cur = Math.max(0, Math.min(i, all.length - 1));
+    render();
+  };
+  addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') goToSlide(cur + 1);
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') goToSlide(cur - 1);
+  });
+  const init = slides().findIndex((s) => s.classList.contains('active'));
+  cur = init < 0 ? 0 : init;
+  render();
+</script>
+</body>
+</html>

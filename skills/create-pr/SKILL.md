@@ -124,10 +124,10 @@ Add changelog entries when appropriate using the format at the bottom of the PR 
 
 ### 6. Include co-author attribution
 
-When committing changes or creating a PR, include attribution at the end of every commit message or PR description:
+When committing changes, include attribution as a trailer at the end of the commit message only — never in the PR description — and never add a second Warp/Oz co-author trailer if the commit already has one:
 
 ```
-Co-Authored-By: Warp <agent@warp.dev>
+Co-Authored-By: Warp Agent <agent@warp.dev>
 ```
 
 ## Testing Requirements

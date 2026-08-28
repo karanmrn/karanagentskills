@@ -234,7 +234,10 @@ const MONOLITH_INVARIANTS: ParityInvariant[] = [
     // cross-session decision-memory nudge) lands this skill just over the strict 1.05;
     // headroom for the shared preamble additions (matches the carved-skill overrides).
     // v1.2.0 activation lift adds the first-run-guidance section on top.
-    maxSizeRatio: 1.09,
+    // 1.09 → 1.10: the plan-mode preamble reword (scope-gate auto-select-B
+    // change) adds ~250 B to every skill's shared preamble; investigate was
+    // the closest to its ceiling (landed 1.092).
+    maxSizeRatio: 1.10,
     minBytes: 30_000,
   },
   {

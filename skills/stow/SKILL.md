@@ -1,114 +1,81 @@
 ---
 name: stow
-description: Sweep the current session for uncaptured durable knowledge and file it to disk before a context reset. Use when the captain invokes /stow (e.g. "/stow", "stow what you've learned"), before a session reset or context compaction, or periodically to keep operational memory current.
+description: Sweep the current conversation for durable knowledge - user preferences, project facts, operational gotchas, and unfinished next steps - and file each through explicit instructions, existing local conventions, or the private `.stow-notes.md` fallback, so nothing is lost when the session ends. Use when the user invokes /stow, asks to save or write down what was learned this session, or before a context reset or long break.
 user-invocable: true
-metadata:
-  internal: true
 ---
 
-<!-- maintainers: this is the firstmate-internal skill. The public, installer-facing counterpart lives at skills/stow/SKILL.md - deliberately a separate file with no shared code or environment branching. Keep them independent. -->
+<!-- maintainers: this is the public, installer-facing skill. Keep it standalone, with no private project paths, tool assumptions, or environment branching. -->
 
 # stow
 
-Sweep this session for durable knowledge that exists only in conversation, then leave the next session with a compact current operating map rather than an accumulating journal.
-This skill writes only through the existing Firstmate ownership and write boundaries.
+Sweep this conversation for durable knowledge that only exists in chat right now, and write it through the user's explicit instructions, this project's existing local conventions, or the private `.stow-notes.md` fallback in the current directory.
+The goal is a conversation that is safe to end, reset, or hand off because everything durable has already been captured on disk, not left stranded in the transcript.
+Everything this skill files goes to a local file by default; it only ever reaches an external system such as an issue tracker when you have explicitly said to use one.
 
-## Required startup-memory pass
+## What it does
 
-Every `/stow` invocation performs this complete pass, even when the session contains no new finding:
+1. **Sweep the conversation for uncaptured durable knowledge.**
+   Read back over the session and look for:
+   - User preferences: a working-style, tooling, formatting, or approval preference the user stated in passing rather than through a config file.
+   - Project facts: build, test, deploy, architecture, or convention facts about the current project that would help anyone (or any agent) working in it later.
+   - Operational gotchas: a sharp edge, workaround, recurring mistake, or non-obvious cause discovered while working here.
+   - Undone next steps: anything left open or agreed to that has not yet been written down anywhere.
 
-1. Run `bin/fm-startup-memory-budget.sh report` before considering a write.
-   Record its effective budget and each file's estimated-token total.
-   The budget is per home: this home's three files against this home's own allowance, never a fleet total.
-   The helper's stable estimate is the documented conservative local approximation, not provider-exact accounting.
-   If it rejects the setting or a memory file, do not infer a default or silently continue.
-   Report that concrete exception and do not call the session reset-safe.
-2. Read every current memory file completely: `data/captain.md`, `data/captain-shared.md`, and `data/learnings.md`.
-   Treat an absent local file as absent, not as an invitation to manufacture content.
-   In a primary home, all three are curation inputs under their existing ownership rules.
-   In a secondmate home, `data/captain-shared.md` is a read-only primary-owned input: count it, never edit it, and curate only the editable local files.
-3. Build one whole-file retention plan before editing.
-   Retain, in order: current captain preferences, authority and safety boundaries, and recurring working style; stable home-local operating facts that repeatedly affect future work and are expensive to rediscover; then concise pointers to an existing authoritative report, project document, configuration, or backlog item.
-   Retain lower-priority material only while budget remains.
-4. Consolidate every editable memory file as needed, not only the file apparently related to a new finding.
-   Prefer one concise current rule or authoritative pointer over duplicate prose.
-   Remove, merge, or route completed incident and release chronology, stale versions and paths, transient task state, resolved alternatives, old metrics, superseded claims, duplicates, and report-sized procedures.
-   Do not remove a unique current fact unless it is preserved directly elsewhere through a stronger existing owner.
-5. Run `bin/fm-startup-memory-budget.sh report` again after the complete pass.
-   Finish at or below the effective budget unless a concrete inability remains.
-   A secondmate must explicitly report `primary-owned-shared-file-alone-exceeds-budget` when the inherited shared file alone exceeds its allowance, because local curation cannot resolve it.
-   Any other unresolved excess must identify the fact that cannot safely be removed or routed and why.
+2. **Discover the host's existing conventions before deciding where anything goes.**
+   Don't assume a destination - look for what's actually there, roughly in this order:
+   - A project-level memory file, such as `CLAUDE.md`, `AGENTS.md`, or an equivalent at the repo root or nearby.
+   - A user-level (global) memory file the running agent reads across projects, if one exists and is readable.
+   - A `TODO`, `BACKLOG`, `NOTES`, or similarly named plain file already tracked in the project.
+   This step is about local files only, not remote systems.
+   Do not scan for or infer an issue tracker here - see the priority order in step 3.
 
-A net increase is allowed only for a genuinely new current fact with no stronger owner.
-Before allowing it, consolidate enough lower-priority material to remain within budget.
-Never describe the session as reset-safe while the memory total is over budget or an exception is unresolved.
+3. **Route each finding using this fixed priority order, local-first.**
+   1. **Highest - an explicit instruction wins.** If the user has explicitly said, earlier in this conversation or as a standing choice previously recorded in the discovered user-level memory file (see step 4), to use a particular system for this kind of finding - including an external tracker - route it there.
+      This is the *only* path to an external or public system: an issue tracker, a hosted project board, a ticketing system, or similar.
+      A configured git host remote, a `.github/`/`.gitlab/` folder, or any other signal that a tracker probably exists is never by itself grounds to file anything there - never route externally on inference.
+   2. **Otherwise - the local system the user already uses.** Route to whatever local memory/backlog convention this project or user already has for that kind of finding: the discovered project memory file (`CLAUDE.md`/`AGENTS.md`) for project facts and operational gotchas, an existing `TODO`/`BACKLOG`/`NOTES` file for undone next steps, or a discovered user-level memory file for user preferences *when one happens to be accessible* - a global memory file is a bonus if the running agent can reach one, never an assumption or a requirement.
+      Among local durable-finding writes, this tier is the only one that writes findings into a tracked, shared file, and the only one that may write outside the current directory - it only fires when that destination was already an established convention the user (or their agent) already has access to, never a path this skill invents itself.
+   3. **Fallback - the default prescribed private file, in the current directory.** If no existing local convention fits, don't improvise a location or invent an ad hoc filename.
+      Before writing it in a git worktree, verify that `.stow-notes.md` is not already tracked in the index.
+      If it is tracked, do not append private findings there, do not describe it as private, and report that the tier-3 fallback is blocked until the user chooses a safe destination.
+      In a non-git directory, treat this as a local private file by filesystem scope.
+      After the tracked-file check passes, create or append to `.stow-notes.md` in the current directory, for every finding-kind including user preferences.
+      This file always lives inside the current working directory, never a user-level or home-directory path, so the fallback works even for agents sandboxed to the current directory.
+      Then keep it out of git: create or append a `.stow-notes.md` line in a `.gitignore` file **in the current directory** - an ordinary file at that path, so this stays fully in-directory even inside a linked worktree, unlike git's internal exclude mechanism, which can resolve outside the working directory there.
+      Leave staging or committing that `.gitignore` line to the user, same as everything else this skill writes.
+      If even the `.gitignore` write fails, don't block or error - still create `.stow-notes.md` and tell the user to ignore it manually.
+   Tiers 2 and 3 are always local; only tier 1 - an explicit instruction - ever reaches an external or public system.
+   Tier 2 is the only tier that lands durable findings in a tracked/shared file; tier 3 keeps stowed findings in the private `.stow-notes.md` file only after confirming it is not already tracked, and confines any optional `.gitignore` metadata edit to the current directory.
 
-## Knowledge sweep and routing
+4. **When it's genuinely ambiguous between two existing conventions, ask once - then remember the answer.**
+   If more than one discovered local convention plausibly fits a finding, ask the user once, plainly, which one they want that kind of note to live in going forward.
+   The same applies if the user gives an explicit instruction to use a tracker or other non-local system going forward rather than just for one item right now.
+   Once they answer, offer to remember it for next time: with their explicit permission, record a short standing note of that choice in the discovered (or newly agreed) user-level memory file, so the same question - or the same tracker instruction - doesn't need to be repeated in this project.
+   Always ask before adding that note - never establish the convention silently on your own judgment.
+   When nothing existing fits at all (not merely ambiguous), that's tier 3, not this step - use the `.stow-notes.md` fallback from step 3 instead of asking, for any finding-kind.
 
-1. **Sweep the session for uncaptured durable knowledge.**
-   Look for operational learnings, captain preferences expressed in passing, project-intrinsic facts, standing decisions, and undone next steps.
-2. **Route each finding using AGENTS.md's knowledge-routing table.**
-   AGENTS.md section 6 is the source of truth for destinations.
-   Do not re-derive or duplicate that mapping here.
-3. **Write within the existing boundaries.**
-   - Captain preferences and fleet-local operational facts belong in the destination selected by AGENTS.md after the required whole-file curation pass.
-     Create `data/learnings.md` only for a genuinely new local learning with no stronger owner.
-   - In a primary home, curate shared captain preferences only under the existing primary-authoritative shared-preference contract.
-     In a secondmate home, route a newly discovered shared preference to the main firstmate through marked status or a document pointer instead of editing the inherited file.
-   - Project-intrinsic knowledge never goes directly into a project's `AGENTS.md`.
-     Route it through a normal ship task so a crewmate records it with `bin/fm-ensure-agents-md.sh` and the project's delivery path.
-   - Knowledge general to every Firstmate user belongs in this repo's shared tracked material through the normal branch, no-mistakes, PR, and captain-merge path.
-   - For task-scoped notes, inspect the item with `tasks-axi show <id> --full`, classify the change as new, duplicate, superseding, or obsolete, then use a considered replacement body through `tasks-axi update <id> --body-file <path>`.
-     Use `--archive-body` when recoverability matters.
-     Never append.
-   - File each undone next step as a queued backlog item with a genuine `blocked-by` dependency when applicable.
-4. **Use inspect-then-update.**
-   For every retained fact, ask which current statement it supersedes, whether it can be a one-sentence rewrite, and whether a stale entry should be deleted, retired, or routed to an existing stronger owner.
-   The only graduation moves are promotion to tracked shared material through a PR, folding a learning into the captain-preference destination selected by AGENTS.md, or deletion of a stale entry.
-   Do not invent another graduation path.
+5. **Write only into locations that already exist as a real convention, the `.stow-notes.md` fallback from step 3 (plus its line in a current-directory `.gitignore`), or a destination the user just approved in step 4.**
+   Do not invent new shared files, new folders, or new tracker categories the project doesn't already have, and do not pick an ad hoc filename or location for the fallback - `.stow-notes.md` in the current directory is the one prescribed default.
+   If even that fallback is unwritable and the user doesn't want to establish a new convention, say so plainly and leave that finding unfiled rather than fabricate a destination for it.
 
-## Completion receipt
+6. **Curate, don't just append.**
+   When a finding overlaps or supersedes something already recorded, prefer editing or replacing the existing note over piling on a duplicate.
 
-Report the outcome in plain captain-facing language with all of these facts:
+7. **Finish with an honest safe-to-end verdict and a resume pointer for the next session.**
+   Tell the user, in plain language, what was captured and where, what could not be captured (and why), and whether the conversation is now safe to end or reset - i.e. whether every durable finding from this sweep now lives on disk or in an explicitly requested tracker rather than only in this chat.
+   If something could not be captured yet, say so explicitly instead of reporting the session fully safe.
+   If anything landed in the `.stow-notes.md` private fallback, say so explicitly - note that it is private and confined to this project, and that it can be promoted into a shared, tracked file later if the user wants it more widely visible.
+   In a git repo, report the ignore protection according to what actually happened: if the `.gitignore` write succeeded, say that a `.stow-notes.md` line was added to a current-directory `.gitignore` to keep it out of git, awaiting the user's own commit; if the `.gitignore` write failed, say that `.stow-notes.md` was still written but the user must ignore it manually before relying on git to hide it from status or commits.
+   If the tier-3 fallback was blocked because `.stow-notes.md` was already tracked, say that no private fallback was written and that the session is not fully safe to reset until the user chooses another destination or confirms that tracked file is acceptable.
+   If a user preference specifically landed there because no user-level memory file was discovered, add the one extra caveat: it now applies to this project only; this skill's own tier-3 default never writes outside the current directory, so if the user wants that preference to follow them across every project, they need to copy it into their own global/user-level memory file themselves.
+   The real payoff of stowing is not this session, it's the next one: close with a short, copy-pasteable RESUME POINTER naming exactly which files a fresh session should load to pick this back up cold, e.g. `To pick this back up in a new session, load: CLAUDE.md (project conventions), .stow-notes.md (private notes, not shared)`.
+   List only the files this sweep actually wrote or updated; skip the pointer if nothing was written.
 
-- effective startup-memory budget and total estimated tokens before and after;
-- one or more actions for each of `data/captain.md`, `data/captain-shared.md`, and `data/learnings.md`: `unchanged`, `added`, `rewritten`, `pruned`, or `routed`;
-- each durable finding filed outside memory and its authoritative owner;
-- every unresolved exception, including a primary-owned shared-file constraint in a secondmate home;
-- whether the session is safe to reset, only when all durable findings are captured and the post-pass result is within budget with no exception.
+## What this skill does not do
 
-Do not hide an over-budget result behind a reset-safe claim.
-In a primary home the receipt is written after the cascade below, not instead of it.
-
-## Automatic cascade to secondmates
-
-In a primary home, every `/stow` cascades to every registered secondmate after this home's own required pass and knowledge sweep are complete.
-In a secondmate home, `/stow` curates that home only and never cascades further.
-The cascade changes nothing until `/stow` is invoked: it adds no notification, no digest section, and no background work.
-
-Run `bin/fm-stow-cascade.sh` once the primary's own pass is done.
-It enumerates each registered secondmate exactly once, reports that home's own budget accounting, and resolves how the sweep reaches it; its header owns the stanza fields, the bound, and the exit codes.
-Every home is judged against its own `config/startup-memory-budget` allowance, so never add homes together or treat one home's excess as another's.
-
-Act on each home by its reported `transport`:
-
-- `agent` - send the marked request with `bin/fm-send.sh fm-<id> "<request>"` so the live secondmate performs its own `/stow`, including the uncaptured knowledge that exists only in its session.
-  Ask it for the same completion receipt this skill defines, and read its reply from its status file or the document it points to, never from its chat.
-- `direct` - curate that local home's editable memory files yourself under the same retention plan, then re-run the cascade to confirm the after totals.
-  `data/captain-shared.md` stays a read-only counted input there, exactly as it is in any secondmate home.
-- `deferred` - a remote home with no live agent. Its memory is accounted read-only and cannot be curated from here, because there is no generic remote write path for a home's own memory files.
-  Report it as an unresolved exception and leave it to its next cascade.
-  Relaunching that secondmate is a separate decision owned by `secondmate-provisioning`, never something `/stow` does on its own.
-- `unavailable` - that home's own accounting did not complete. Report the concrete exception and continue; a slow or unreachable home never blocks this home's `/stow`.
-
-A newly discovered shared captain preference still routes to the primary's `data/captain-shared.md` under the existing primary-authoritative contract, whichever home found it.
-
-Extend the completion receipt with one entry per secondmate alongside the primary's own, carrying that home's budget before and after, its per-file actions, its exceptions, and whether that home swept itself or was curated from here.
-Keep those entries in the same plain captain-facing language the rest of the receipt uses.
-The session is reset-safe only when every home is within its own budget with no unresolved exception.
-
-## Scope exclusion: no skill storage
-
-`/stow` must never store, create, or edit a skill as a destination for any finding.
-There is no "graduate this to a skill" move in this skill's routing.
-Until a human deliberately scopes a skill change as Firstmate repository work, route generalizable knowledge to shared tracked material through its pipeline and fleet-local knowledge to `data/`, never to `.agents/skills/` or public `skills/`.
+It does not invent a new note-taking system, initialize version control, or commit/push anything on the user's behalf beyond editing a file the discovered convention already made writable, creating the `.stow-notes.md` fallback from step 3 and its line in a current-directory `.gitignore`, or using a destination the user explicitly approved.
+It never stages or commits that `.gitignore` line itself - the edit lands in the working tree only, for the user to review and commit like any other change.
+Its own tier-3 default never writes durable findings outside the current working directory, and its optional `.gitignore` metadata edit is also confined to that directory.
+Among local durable-finding writes, tier 2 is the only exception, and only because it targets a destination the user's own existing convention already established, never one this skill invents.
+It never files credentials, secrets, or other sensitive material - only knowledge that's safe to keep in plain text wherever it lands.
+It never files anything to an issue tracker, hosted board, or other external/public system on its own inference - that only ever happens on the user's explicit say-so, per the hard rule in step 3.

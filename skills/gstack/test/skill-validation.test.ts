@@ -134,6 +134,15 @@ describe('SKILL.md command validation', () => {
     const result = validateSkill(skill);
     expect(result.snapshotFlagErrors).toHaveLength(0);
   });
+
+  test('autoplan section skip list includes the scope gate', () => {
+    // autoplan Step 3 reads plan-eng-review / plan-design-review SKILL.md
+    // verbatim; without this skip-list entry it ingests their scope gate — a
+    // hard-STOP AskUserQuestion that contradicts autoplan's auto-decide
+    // contract. Nothing else pins the skip-list contents.
+    const md = fs.readFileSync(path.join(ROOT, 'autoplan', 'SKILL.md'), 'utf-8');
+    expect(md).toContain('- Scope gate (the plan under review is already the target)');
+  });
 });
 
 describe('Command registry consistency', () => {

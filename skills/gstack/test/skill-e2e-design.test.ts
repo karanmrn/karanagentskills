@@ -176,7 +176,13 @@ Include: color trends, typography patterns, and layout conventions you observed.
 Do NOT generate a full DESIGN.md — just research notes.`,
       workingDirectory: researchDir,
       maxTurns: 8,
-      timeout: 90_000,
+      // 300s, not 90s: saturated-runner class (same as review-dashboard-via /
+      // retro-base-branch). PR #2533 CI observed the sibling preview test at
+      // 0 turns/$0.00 for 93s x3 attempts — session up, first completion
+      // queued past the budget under concurrent API load. 90s budgets cannot
+      // absorb one slow first completion; 300s is the repo's standard floor
+      // for CI SDK tests. Outer timeout below rises to 360s for headroom.
+      timeout: 300_000,
       testName: 'design-consultation-research',
       runId,
     });
@@ -206,7 +212,7 @@ Do NOT generate a full DESIGN.md — just research notes.`,
     }
 
     try { fs.rmSync(researchDir, { recursive: true, force: true }); } catch {}
-  }, 120_000);
+  }, 360_000);
 
   testConcurrentIfSelected('design-consultation-existing', async () => {
     // Pre-create a minimal DESIGN.md (independent of core test)
@@ -274,7 +280,9 @@ Write a single HTML file to ${previewDir}/design-preview.html that shows:
 Do NOT write DESIGN.md — only the preview HTML.`,
       workingDirectory: previewDir,
       maxTurns: 8,
-      timeout: 90_000,
+      // 300s, not 90s: this is the test that failed 3x at 0 turns/$0.00/93s
+      // on PR #2533 CI — see the research test's comment for the class.
+      timeout: 300_000,
       testName: 'design-consultation-preview',
       runId,
     });
@@ -303,7 +311,7 @@ Do NOT write DESIGN.md — only the preview HTML.`,
     }
 
     try { fs.rmSync(previewDir, { recursive: true, force: true }); } catch {}
-  }, 120_000);
+  }, 360_000);
 });
 
 // --- Plan Design Review E2E (plan-mode) ---

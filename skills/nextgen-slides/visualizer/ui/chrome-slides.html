@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>slides-viz · slides editor</title>
+<link rel="stylesheet" href="/__viz/ui/editor.css" />
+<style>
+  /* slides-only: the slide counter in the nav */
+  #slidenum { color: var(--muted); font-variant-numeric: tabular-nums; min-width: 54px; text-align: center; font-size: 13px; }
+</style>
+</head>
+<body>
+  <div id="topbar">
+    <div class="nav">
+      <button id="prev" title="Previous slide">‹</button>
+      <span id="slidenum">– / –</span>
+      <button id="next" title="Next slide">›</button>
+    </div>
+    <div class="hint"></div>
+    <button id="done" title="Finish this stage and continue">Continue</button>
+    <div id="menu">
+      <button id="menubtn" title="More" aria-haspopup="true" aria-expanded="false">⋯</button>
+      <div id="menulist">
+        <button id="publishbtn" title="Publish this deck to a public URL"><span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span>Publish</button>
+        <button id="download" title="Download this deck as an HTML file"><span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span>Download</button>
+        <button id="preview" title="Open the deck in a clean new tab"><span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></span>Preview</button>
+        <button id="refresh" title="Reload the deck (use if it looks stuck or a new slide isn't showing)"><span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></span>Refresh</button>
+        <button id="help" title="How the editor works"><span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>Help</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal">
+    <div class="card">
+      <div class="head"><span>How the slides editor works</span><span class="spacer"></span><button id="modal-close">✕</button></div>
+      <div class="body">
+        <div class="row2"><div class="ic">✎</div><div><b>Edit text in place</b><span>Double-click any text on a slide, type, then press Enter (Esc to cancel). Changes save straight to the file.</span></div></div>
+        <div class="row2"><div class="ic">💬</div><div><b>Comment for the agent</b><span>Single-click any element to attach a comment to it. Comments collect in the panel — hit <b>Send</b> to hand the batch to the agent, which edits the deck live.</span></div></div>
+        <div class="row2"><div class="ic">‹›</div><div><b>Navigate</b><span>Use ‹ / › in the top bar, or the arrow keys, to move between slides. The counter shows your place.</span></div></div>
+        <div class="row2"><div class="ic">◈</div><div><b>Preview</b><span>Opens the deck in a clean new tab at the exact size it'll be presented — no editor chrome.</span></div></div>
+        <div class="row2"><div class="ic">✓</div><div><b>Track your requests</b><span>Each sent request shows a badge: <b>Queued</b> → <b>Working</b> (spinner) → <b>Done</b> (✓). The bar below shows when the agent is <b>Listening</b> (green) or <b>Working</b> (amber spinner).</span></div></div>
+        <div class="row2"><div class="ic">⏻</div><div><b>Continue</b><span>When a stage is finished, hit Continue — the agent hands over anything queued, stops listening, and moves on to the next step. Re-open the editor anytime to keep going.</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="confirm">
+    <div class="card">
+      <div class="head">Close the editor?</div>
+      <div class="body">
+        <p>This finishes the current stage and tells the agent to stop listening for changes. Anything still in the queue will be handed over first. You can re-open the editor anytime to keep working.</p>
+        <div class="actions">
+          <button id="confirm-cancel">Cancel</button>
+          <button id="confirm-ok">Close editor</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="publish">
+    <div class="card">
+      <div class="head"><span id="publish-title">Publish to the web</span><span class="spacer"></span><button class="x" id="publish-close" title="Close">✕</button></div>
+      <div class="body">
+        <p id="publish-desc">Upload this deck to a free public URL. Anyone with the link can view it.</p>
+        <label>Password <span class="hint">optional — viewers must enter it to open the page</span>
+          <input id="publish-pw" type="password" placeholder="Leave blank for no password" autocomplete="new-password" />
+        </label>
+        <div class="err" id="publish-err"></div>
+        <div class="result" id="publish-result">
+          <div style="font-size:12.5px;color:var(--muted)">Live at</div>
+          <div class="urlrow">
+            <input id="publish-url" type="text" readonly />
+            <button class="btn sm" id="publish-copy">Copy</button>
+          </div>
+          <a class="open" id="publish-openlink" href="#" target="_blank" rel="noopener">Open in a new tab ↗</a>
+        </div>
+        <div class="actions">
+          <span class="spacer"></span>
+          <button id="publish-cancel">Close</button>
+          <button id="publish-go">Publish ▸</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="stage">
+    <iframe id="deck" src="/__viz/deck"></iframe>
+    <div id="savetoast">saved ✓</div>
+    <div id="popup">
+      <div class="sel" id="popup-sel"></div>
+      <textarea id="popup-text" placeholder="Comment on this element…"></textarea>
+      <div class="row">
+        <button class="btn sm" id="popup-add">Add to queue</button>
+        <button class="btn sm" id="popup-cancel" style="background:transparent;border:1px solid var(--border);color:var(--text)">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="panel">
+    <div id="panelhead"><span class="txt">Changes</span><span class="sub">sent to the agent</span></div>
+    <div id="history"><div class="empty"><b>Double-click</b> any text on the slide to edit it in place.<br><br>Or <b>single-click</b> an element to comment on it — comments collect below, then <b>Send</b> the batch to the agent.</div></div>
+    <div id="agentbar"><span class="ring"></span><span class="txt">Connecting…</span></div>
+    <div id="queuewrap">
+      <div id="queuehead">
+        <b id="queuecount">0 queued</b>
+        <span class="spacer"></span>
+        <button class="btn sm" id="sendqueue">Send to agent ▸</button>
+      </div>
+      <div id="queuelist"></div>
+    </div>
+    <div id="composer">
+      <textarea id="msg" placeholder="…or type a general task for the current slide (⌘/Ctrl+Enter to queue)"></textarea>
+      <div class="row">
+        <span class="hint2">Attaches to slide <b id="msgslide">–</b>, added to the queue above</span>
+        <span class="spacer"></span>
+        <button class="btn" id="addmsg">Add</button>
+      </div>
+    </div>
+  </div>
+
+<script src="/__viz/ui/editor-core.js"></script>
+<script>
+/* ---- slides adapter: slide navigation + "comment attaches to slide N" ---- */
+(function () {
+  let curSlide = null;
+  const q = (s) => document.querySelector(s);
+
+  function slidesIn(doc) { return doc ? Array.from(doc.querySelectorAll('.slide')) : []; }
+  function activeIndex(doc) {
+    const all = slidesIn(doc);
+    const i = all.findIndex((s) => s.classList.contains('active') || s.classList.contains('visible'));
+    return i === -1 ? (all.length ? 1 : null) : i + 1;
+  }
+  function reportSlide(core) {
+    const doc = core.getDoc();
+    const all = slidesIn(doc);
+    curSlide = activeIndex(doc);
+    q('#slidenum').textContent = (curSlide ?? '–') + ' / ' + (all.length || '–');
+    const ms = q('#msgslide'); if (ms) ms.textContent = curSlide ?? '–';
+  }
+  function gotoSlide(core, n) {
+    const doc = core.getDoc(); if (!doc) return;
+    const all = slidesIn(doc);
+    const idx = Math.max(1, Math.min(n, all.length)) - 1;
+    const w = core.deck.contentWindow;
+    if (w && typeof w.goToSlide === 'function') w.goToSlide(idx);
+    else all.forEach((s, i) => { s.classList.toggle('active', i === idx); s.classList.toggle('visible', i === idx); });
+    reportSlide(core);
+  }
+
+  window.initEditor({
+    initControls(core) {
+      q('#prev').onclick = () => { gotoSlide(core, (curSlide || 1) - 1); core.closePopup(); };
+      q('#next').onclick = () => { gotoSlide(core, (curSlide || 1) + 1); core.closePopup(); };
+    },
+    onBind(core) { reportSlide(core); },
+    onDeckKeyup(core) { reportSlide(core); },
+    commentContext(core) { return { slide: activeIndex(core.getDoc()) }; },
+  });
+})();
+</script>
+</body>
+</html>

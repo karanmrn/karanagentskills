@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>State of Remote Work 2026 — Bold Signal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+
+  :root {
+    --bg: #0a0a0a;
+    --ink: #ffffff;
+    --accent: #ff4d3d;
+    --muted: #7a7a7a;
+    --line: #2a2a2a;
+  }
+
+  .viewport { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: #000; }
+  .stage {
+    position: relative; width: 1920px; height: 1080px; flex: none; overflow: hidden;
+    container-type: size; transform: scale(var(--vizscale, 1)); transform-origin: center center;
+    background: var(--bg); color: var(--ink);
+    font-family: "Inter Tight", sans-serif;
+  }
+
+  .slide {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .5s ease;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 8cqh 8cqw;
+  }
+  .slide.active { opacity: 1; visibility: visible; pointer-events: auto; }
+
+  /* atmospheric grain + faint grid on dark slides */
+  .stage::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 40;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 6.4cqw 6.4cqw;
+    opacity: 0.12; mix-blend-mode: screen;
+  }
+
+  h1, h2, h3, .num, .kicker, .index { font-family: "Space Grotesk", sans-serif; }
+
+  .kicker {
+    font-size: 1.6cqh; font-weight: 600; letter-spacing: 0.5em; text-transform: uppercase;
+    color: var(--accent);
+  }
+  .index {
+    position: absolute; top: 6cqh; right: 8cqw; font-size: 1.5cqh; letter-spacing: 0.3em;
+    color: var(--muted); text-transform: uppercase; z-index: 20;
+  }
+  .tag-strip {
+    position: absolute; top: 6cqh; left: 8cqw; font-size: 1.5cqh; letter-spacing: 0.3em;
+    color: var(--muted); text-transform: uppercase; z-index: 20;
+    display: flex; align-items: center; gap: 1.2cqw;
+  }
+  .dot { width: 1cqh; height: 1cqh; background: var(--accent); display: inline-block; }
+
+  .counter {
+    position: absolute; bottom: 5cqh; right: 8cqw; z-index: 50;
+    font-family: "Space Grotesk", sans-serif; font-size: 1.6cqh; letter-spacing: 0.3em;
+    color: var(--muted);
+  }
+
+  /* entrance animation */
+  .slide.active .rise { animation: rise .7s cubic-bezier(.2,.8,.2,1) both; }
+  .slide.active .rise:nth-child(2) { animation-delay: .05s; }
+  .slide.active .rise:nth-child(3) { animation-delay: .1s; }
+  .slide.active .rise:nth-child(4) { animation-delay: .15s; }
+  @keyframes rise { from { opacity: 0; transform: translateY(3cqh); } to { opacity: 1; transform: none; } }
+
+  /* ---------- Slide 1: TITLE ---------- */
+  .s-title { justify-content: space-between; }
+  .title-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .title-main h1 {
+    font-size: 15cqh; font-weight: 700; line-height: 0.86; letter-spacing: -0.04em;
+    text-transform: uppercase;
+  }
+  .title-main h1 .em { color: var(--accent); }
+  .title-bottom { display: flex; justify-content: space-between; align-items: flex-end; }
+  .title-bottom p { font-size: 2.2cqh; max-width: 46ch; color: #cfcfcf; line-height: 1.35; }
+  .title-year {
+    font-family: "Space Grotesk", sans-serif; font-weight: 700; font-size: 6cqh;
+    letter-spacing: -0.02em; color: var(--ink);
+  }
+
+  /* ---------- Big stat slides ---------- */
+  .s-stat { justify-content: center; }
+  .s-stat .num {
+    font-weight: 700; letter-spacing: -0.05em; line-height: 0.82;
+    font-size: 44cqh; display: flex; align-items: flex-start;
+  }
+  .s-stat .num .unit { font-size: 18cqh; color: var(--accent); margin-left: 1cqw; }
+  .s-stat .caption {
+    margin-top: 2cqh; font-size: 3cqh; max-width: 40ch; color: #d6d6d6; line-height: 1.25;
+  }
+  .s-stat .caption b { color: var(--ink); font-weight: 600; }
+  .stat-foot { position: absolute; bottom: 6cqh; left: 8cqw; font-size: 1.7cqh; color: var(--muted); letter-spacing: 0.05em; }
+
+  /* accent-block variant */
+  .s-stat.invert { background: var(--accent); color: #0a0a0a; }
+  .s-stat.invert .kicker { color: #0a0a0a; }
+  .s-stat.invert .num .unit { color: #0a0a0a; }
+  .s-stat.invert .caption { color: #1a0a08; }
+  .s-stat.invert .caption b { color: #000; }
+  .s-stat.invert .stat-foot { color: #5a1e18; }
+  .s-stat.invert .index { color: #5a1e18; }
+  .s-stat.invert .tag-strip { color: #5a1e18; }
+  .s-stat.invert .dot { background: #0a0a0a; }
+  .s-stat.invert .counter { color: #5a1e18; }
+
+  /* ---------- List slide ---------- */
+  .s-list .kicker { margin-bottom: 4cqh; }
+  .frict { display: flex; flex-direction: column; gap: 0; }
+  .frict-row {
+    display: grid; grid-template-columns: 9cqw 1fr 16cqw; align-items: center;
+    border-top: 2px solid var(--line); padding: 2.3cqh 0;
+  }
+  .frict-row:last-child { border-bottom: 2px solid var(--line); }
+  .frict-row .rank {
+    font-family: "Space Grotesk", sans-serif; font-weight: 700; font-size: 6cqh;
+    letter-spacing: -0.03em; color: var(--muted);
+  }
+  .frict-row .label { font-size: 3.2cqh; font-weight: 500; letter-spacing: -0.01em; }
+  .frict-row .pct {
+    font-family: "Space Grotesk", sans-serif; font-weight: 700; font-size: 4.4cqh;
+    text-align: right; letter-spacing: -0.03em; color: var(--accent);
+  }
+  .frict-row:hover .rank { color: var(--ink); }
+
+  /* ---------- Two-column comparison ---------- */
+  .s-compare { padding: 0; flex-direction: row; }
+  .col { flex: 1; padding: 9cqh 5cqw; display: flex; flex-direction: column; justify-content: center; }
+  .col.remote { background: var(--bg); }
+  .col.office { background: #141414; border-left: 3px solid var(--accent); }
+  .col h3 {
+    font-size: 7cqh; font-weight: 700; text-transform: uppercase; letter-spacing: -0.03em;
+    line-height: 0.9; margin-bottom: 4cqh;
+  }
+  .col.remote h3 .em { color: var(--accent); }
+  .col ul { list-style: none; display: flex; flex-direction: column; gap: 2.6cqh; }
+  .col li { font-size: 2.6cqh; line-height: 1.2; display: flex; gap: 1.4cqw; align-items: baseline; }
+  .col li .k { font-family: "Space Grotesk", sans-serif; font-weight: 700; font-size: 3cqh; color: var(--accent); min-width: 7cqw; }
+  .col.office li .k { color: #ffffff; }
+  .col li .v { color: #cfcfcf; }
+  .compare-head { position: absolute; top: 6cqh; left: 50%; transform: translateX(-50%); z-index: 30;
+    font-family: "Space Grotesk", sans-serif; letter-spacing: 0.4em; text-transform: uppercase; font-size: 1.6cqh; color: var(--muted); }
+
+  /* ---------- Closing ---------- */
+  .s-close { justify-content: center; align-items: flex-start; }
+  .s-close h2 {
+    font-size: 9cqh; font-weight: 700; text-transform: uppercase; line-height: 0.92;
+    letter-spacing: -0.03em; max-width: 24ch;
+  }
+  .s-close h2 .em { color: var(--accent); }
+  .s-close .lead { margin-top: 4cqh; font-size: 2.6cqh; max-width: 52ch; color: #cfcfcf; line-height: 1.4; }
+  .s-close .sign {
+    margin-top: 6cqh; display: flex; align-items: center; gap: 1.5cqw;
+    font-family: "Space Grotesk", sans-serif; letter-spacing: 0.3em; text-transform: uppercase;
+    font-size: 1.8cqh; color: var(--muted);
+  }
+  .s-close .sign .bar { width: 8cqw; height: 0.4cqh; background: var(--accent); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .slide.active .rise { animation: none !important; }
+    .slide { transition: none; }
+  }
+</style>
+</head>
+<body>
+<div class="viewport"><div class="stage">
+
+  <!-- 1. TITLE -->
+  <section class="slide active s-title">
+    <div class="tag-strip"><span class="dot"></span> Signal Report</div>
+    <div class="index">No. 01 — 08</div>
+    <div class="title-top rise">
+      <div class="kicker">The Distributed Decade</div>
+    </div>
+    <div class="title-main rise">
+      <h1>State of<br>Remote<br><span class="em">Work</span></h1>
+    </div>
+    <div class="title-bottom rise">
+      <p>A data-forward field report on where distributed teams actually landed — the money, the friction, and the new default.</p>
+      <div class="title-year">2026</div>
+    </div>
+  </section>
+
+  <!-- 2. BIG STAT: hybrid -->
+  <section class="slide s-stat">
+    <div class="tag-strip"><span class="dot"></span> The New Default</div>
+    <div class="index">No. 02 — 08</div>
+    <div class="kicker rise">Team Structure</div>
+    <div class="num rise">58<span class="unit">%</span></div>
+    <div class="caption rise">of teams now run <b>hybrid</b> — the single largest operating model, ahead of both fully-remote (27%) and fully in-office (15%).</div>
+    <div class="stat-foot">n = 4,200 companies · 41 countries · surveyed Q1 2026</div>
+  </section>
+
+  <!-- 3. BIG STAT: days in office (inverted accent block) -->
+  <section class="slide s-stat invert">
+    <div class="tag-strip"><span class="dot"></span> Cadence</div>
+    <div class="index">No. 03 — 08</div>
+    <div class="kicker rise">Average In-Office</div>
+    <div class="num rise">3.1<span class="unit">d</span></div>
+    <div class="caption rise">days per week, up from 2.4 in 2024. The "anchor days" — Tuesday to Thursday — now carry <b>71%</b> of all badge-ins.</div>
+    <div class="stat-foot">Median across hybrid-mandated orgs, weighted by headcount</div>
+  </section>
+
+  <!-- 4. BIG STAT: money saved -->
+  <section class="slide s-stat">
+    <div class="tag-strip"><span class="dot"></span> Economics</div>
+    <div class="index">No. 04 — 08</div>
+    <div class="kicker rise">Annual Savings</div>
+    <div class="num rise"><span class="unit" style="font-size:18cqh;margin:0 0.6cqw 0 0;">$</span>11.2<span class="unit">k</span></div>
+    <div class="caption rise">saved per remote employee each year — real estate, facilities and commuter subsidies combined. At scale, a <b>1,000-person</b> shift frees $11.2M.</div>
+    <div class="stat-foot">Employer-side net, excludes one-time relocation & stipend costs</div>
+  </section>
+
+  <!-- 5. LIST: friction -->
+  <section class="slide s-list">
+    <div class="tag-strip"><span class="dot"></span> Where It Breaks</div>
+    <div class="index">No. 05 — 08</div>
+    <div class="kicker rise">Top Friction Points · % citing as "significant"</div>
+    <div class="frict rise">
+      <div class="frict-row"><div class="rank">01</div><div class="label">Meeting overload &amp; calendar sprawl</div><div class="pct">64%</div></div>
+      <div class="frict-row"><div class="rank">02</div><div class="label">Timezone drag on decisions</div><div class="pct">57%</div></div>
+      <div class="frict-row"><div class="rank">03</div><div class="label">Weak async writing culture</div><div class="pct">49%</div></div>
+      <div class="frict-row"><div class="rank">04</div><div class="label">Onboarding new hires remotely</div><div class="pct">42%</div></div>
+      <div class="frict-row"><div class="rank">05</div><div class="label">Proximity bias in promotions</div><div class="pct">38%</div></div>
+    </div>
+  </section>
+
+  <!-- 6. TWO-COLUMN COMPARISON -->
+  <section class="slide s-compare">
+    <div class="index" style="z-index:30;">No. 06 — 08</div>
+    <div class="compare-head">Head to Head</div>
+    <div class="col remote rise">
+      <h3><span class="em">Remote</span></h3>
+      <ul>
+        <li><span class="k">+41%</span><span class="v">deep-focus hours per week</span></li>
+        <li><span class="k">$11k</span><span class="v">employer savings / head</span></li>
+        <li><span class="k">3.2×</span><span class="v">larger hiring radius</span></li>
+        <li><span class="k">−19%</span><span class="v">reported serendipitous ideas</span></li>
+      </ul>
+    </div>
+    <div class="col office rise">
+      <h3>Office</h3>
+      <ul>
+        <li><span class="k">−26%</span><span class="v">time-to-first-decision</span></li>
+        <li><span class="k">+33%</span><span class="v">new-hire ramp speed</span></li>
+        <li><span class="k">68%</span><span class="v">prefer for hard conversations</span></li>
+        <li><span class="k">52min</span><span class="v">median daily commute cost</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 7. BIG STAT: retention -->
+  <section class="slide s-stat">
+    <div class="tag-strip"><span class="dot"></span> Retention</div>
+    <div class="index">No. 07 — 08</div>
+    <div class="kicker rise">Flexibility &amp; Loyalty</div>
+    <div class="num rise">2.3<span class="unit">×</span></div>
+    <div class="caption rise">longer tenure among employees with <b>schedule autonomy</b>. 79% say they'd take a pay cut before giving up flexibility.</div>
+    <div class="stat-foot">Cohort tracked over 36 months · self-reported willingness</div>
+  </section>
+
+  <!-- 8. CLOSING -->
+  <section class="slide s-close">
+    <div class="tag-strip"><span class="dot"></span> The Takeaway</div>
+    <div class="index">No. 08 — 08</div>
+    <h2 class="rise">Flexibility isn't the perk.<br>It's the <span class="em">operating system.</span></h2>
+    <p class="lead rise">The debate is over — hybrid won. The winners of 2026 won't be the loudest about office mandates; they'll be the ones who engineer for focus, decide in the open, and treat where you work as a solved problem.</p>
+    <div class="sign rise"><span class="bar"></span> State of Remote Work · 2026</div>
+  </section>
+
+  <div class="counter" id="counter"></div>
+</div></div>
+
+<script>
+  const stageEl = document.querySelector('.stage');
+  function fitStage(){ const s = Math.min(innerWidth/1920, innerHeight/1080); if(stageEl) stageEl.style.setProperty('--vizscale', s); }
+  addEventListener('resize', fitStage); fitStage();
+  let cur = 0;
+  const slides = () => Array.from(document.querySelectorAll('.slide'));
+  const counter = document.getElementById('counter');
+  function render() {
+    const all = slides();
+    all.forEach((s, n) => s.classList.toggle('active', n === cur));
+    if (counter) counter.textContent = (cur + 1) + ' / ' + all.length;
+  }
+  window.goToSlide = function (i) {
+    const all = slides();
+    cur = Math.max(0, Math.min(i, all.length - 1));
+    render();
+  };
+  addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') goToSlide(cur + 1);
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') goToSlide(cur - 1);
+  });
+  const init = slides().findIndex((s) => s.classList.contains('active'));
+  cur = init < 0 ? 0 : init;
+  render();
+</script>
+</body>
+</html>
